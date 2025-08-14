@@ -1,16 +1,31 @@
 // controllers/productController.js
 const Product = require('../models/Product');
 
-// GET all products
+// GET all products OR filter by keyword/category
 exports.getProducts = async (req, res) => {
   try {
-    const products = await Product.find({});
+    const { keyword, category } = req.query;
+    const filter = {};
+
+    if (keyword) {
+      filter.name = {
+        $regex: keyword,
+        $options: 'i', // Case-insensitive
+      };
+    }
+
+    if (category) {
+      filter.category = category;
+    }
+
+    const products = await Product.find(filter);
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: "Server error while fetching products" });
   }
 };
 
+// ... (The rest of your controller functions remain the same)
 // GET a single product by its ID
 exports.getProductById = async (req, res) => {
   try {
@@ -25,7 +40,7 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-// POST a new product
+// POST a new product (Admin)
 exports.createProduct = async (req, res) => {
   try {
     const { name, price, mrp, category, image, description, stock, rating, trending } = req.body;
@@ -39,7 +54,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// PUT (update) a product
+// PUT (update) a product (Admin)
 exports.updateProduct = async (req, res) => {
     const { name, price, mrp, description, image, category, stock, rating, trending } = req.body;
     try {
@@ -66,7 +81,7 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-// DELETE a product
+// DELETE a product (Admin)
 exports.deleteProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);

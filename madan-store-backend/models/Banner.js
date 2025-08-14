@@ -2,7 +2,9 @@
 const mongoose = require('mongoose');
 
 const bannerSchema = new mongoose.Schema({
-    text: { type: String, required: true },
+    image: { type: String, required: true },
+    title: { type: String, required: true, default: 'Special Offer' }, // For alt text and accessibility
+    link: { type: String, default: '/' }, // URL to navigate to on click
     isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 

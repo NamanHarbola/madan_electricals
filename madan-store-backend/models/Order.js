@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'User' // This links to the User model
+        ref: 'User'
     },
     orderItems: [
         {
@@ -16,7 +16,7 @@ const orderSchema = new mongoose.Schema({
             product: {
                 type: mongoose.Schema.Types.ObjectId,
                 required: true,
-                ref: 'Product' // This links to the Product model
+                ref: 'Product'
             }
         }
     ],
@@ -25,11 +25,25 @@ const orderSchema = new mongoose.Schema({
         required: true,
         default: 0.0
     },
+    paymentMethod: {
+        type: String,
+        required: true,
+        enum: ['Razorpay', 'COD'], // Can be expanded later
+        default: 'COD'
+    },
+    isPaid: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    paidAt: {
+        type: Date
+    },
     status: {
         type: String,
         required: true,
-        default: 'Paid',
-        enum: ['Paid', 'Delivered', 'Completed', 'Cancelled']
+        enum: ['Pending', 'Paid', 'Shipped', 'Delivered', 'Cancelled'],
+        default: 'Pending'
     }
 }, {
     timestamps: true

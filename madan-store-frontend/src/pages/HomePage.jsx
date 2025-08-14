@@ -1,58 +1,71 @@
-// src/pages/HomePage.jsx
+// src/components/Navbar.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useCart } from '../context/CartContext.jsx';
+import { FaShoppingCart, FaUserCircle, FaSearch } from 'react-icons/fa';
 
-const HomePage = () => {
+const Navbar = ({ toggleCart }) => {
+    const { userInfo, logout } = useAuth();
+    const { cartItems } = useCart();
+    const navigate = useNavigate();
+    const cartItemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        const keyword = e.target.elements.q.value;
+        if (keyword.trim()) {
+            navigate(`/search/${keyword}`);
+        }
+    };
+
     return (
         <>
-            {/* New Hero Section */}
-            <section className="hero-light">
-                <div className="hero-light-content">
-                    <h1 className="hero-light-title">Madan Store</h1>
-                    <p className="hero-light-subtitle">Premium electronics and professional hardware, curated for excellence.</p>
-                    <a href="#services" className="btn-accent">View Our Products</a>
-                </div>
-            </section>
+            <div className="top-bar">
+                Sign up and get 20% off to your first order. 
+                <NavLink to="/signup" style={{textDecoration: 'underline', marginLeft: '8px'}}>Sign Up Now</NavLink>
+            </div>
+            <header className="header">
+                <div className="nav-container">
+                    <div className="nav-logo">
+                        <Link to="/"><h1>SHOP.CO</h1></Link>
+                    </div>
 
-            {/* Services Section */}
-            <section id="services" className="services-section">
-                <div className="container">
-                    <h2 className="section-heading">Our Products</h2>
-                    <div className="services-grid">
-                        <div className="service-card">
-                            <img src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=500&q=80" alt="Electronics"/>
-                            <h3>Latest Electronics</h3>
-                            <p>Cutting-edge gadgets and devices to power your life.</p>
-                        </div>
-                        <div className="service-card">
-                            <img src="https://images.unsplash.com/photo-1598369683238-7c25a4186549?w=500&q=80" alt="Hardware Tools"/>
-                            <h3>Professional Hardware</h3>
-                            <p>Durable and reliable tools for any project, big or small.</p>
-                        </div>
-                        <div className="service-card">
-                            <img src="https://images.unsplash.com/photo-1550009158-94ae76552485?w=500&q=80" alt="Accessories"/>
-                            <h3>Premium Accessories</h3>
-                            <p>High-quality accessories to complement your devices.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                    <nav className="nav-menu">
+                        <NavLink to="/" className="nav-link">Home</NavLink>
+                        <a href="/#products" className="nav-link">Products</a>
+                        <a href="/#about" className="nav-link">About</a>
+                        <a href="/#contact" className="nav-link">Contact</a>
+                        {userInfo && userInfo.isAdmin && (
+                            <Link to="/admin/orders" className="nav-link">Admin Panel</Link>
+                        )}
+                    </nav>
 
-            {/* About Section */}
-            <section id="about" className="about-section-light">
-                <div className="container about-grid">
-                    <div className="about-text-content">
-                        <h2 className="section-heading">Your Trusted Tech Partner</h2>
-                        <p>At Madan Store, we believe in providing not just products, but solutions. We hand-pick every item to ensure it meets our high standards.</p>
-                        <Link to="/about" className="btn-outline-light">Learn More</Link>
-                    </div>
-                    <div className="about-image-content">
-                        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=500&q=80" alt="Team working"/>
+                    <div className="nav-actions">
+                        <form onSubmit={handleSearch} className="nav-search">
+                            <FaSearch style={{color: 'var(--color-text-secondary)'}} />
+                            <input type="text" name="q" placeholder="Search..." />
+                        </form>
+                        <div className="cart-icon" onClick={toggleCart}>
+                            <FaShoppingCart />
+                            {cartItemCount > 0 && <span className="cart-count">{cartItemCount}</span>}
+                        </div>
+                        <div className="nav-dropdown">
+                             <Link to={userInfo ? "/profile" : "/login"} className="nav-user-icon">
+                                <FaUserCircle />
+                            </Link>
+                            {userInfo && (
+                                <div className="dropdown-menu">
+                                    <Link to="/profile">My Profile</Link>
+                                    <button onClick={logout}>Logout</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </section>
+            </header>
         </>
     );
 };
 
-export default HomePage;
+export default Navbar;

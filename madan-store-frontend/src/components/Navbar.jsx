@@ -1,74 +1,70 @@
 // src/components/Navbar.jsx
-import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
+import { FaShoppingCart, FaUserCircle, FaSearch } from 'react-icons/fa';
 
 const Navbar = ({ toggleCart }) => {
     const { userInfo, logout } = useAuth();
     const { cartItems } = useCart();
-    const [isDropdownOpen, setDropdownOpen] = useState(false);
-
+    const navigate = useNavigate();
     const cartItemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
+    const handleSearch = (e) => {
+        e.preventDefault();
+        const keyword = e.target.elements.q.value;
+        if (keyword.trim()) {
+            navigate(`/search/${keyword}`);
+        }
+    };
+
     return (
-        <nav className="navbar scrolled"> {/* Always have a background for clarity */}
-            <div className="nav-container">
-                <div className="nav-logo">
-                    <Link to="/"><h1>Madan Store</h1></Link>
-                </div>
+        <>
+            <div className="top-bar">
+                Sign up and get 20% off to your first order. 
+                <NavLink to="/signup" style={{textDecoration: 'underline', marginLeft: '8px'}}>Sign Up Now</NavLink>
+            </div>
+            <header className="header">
+                <div className="nav-container">
+                    <div className="nav-logo">
+                        <Link to="/"><h1>SHOP.CO</h1></Link>
+                    </div>
 
-                <div className="nav-menu">
-                    <NavLink to="/" className="nav-link" end>Home</NavLink>
-                    <a href="/#about" className="nav-link">About</a>
-                    <a href="/#services" className="nav-link">Services</a>
-                    <a href="/#contact" className="nav-link">Contact</a>
-                </div>
+                    <nav className="nav-menu">
+                        <NavLink to="/" className="nav-link">Home</NavLink>
+                        <a href="/#products" className="nav-link">Products</a>
+                        <a href="/#about" className="nav-link">About</a>
+                        <a href="/#contact" className="nav-link">Contact</a>
+                        {userInfo && userInfo.isAdmin && (
+                            <Link to="/admin/orders" className="nav-link">Admin Panel</Link>
+                        )}
+                    </nav>
 
-                <div className="nav-actions">
-                    {userInfo ? (
-                        <div className="nav-user-info" onMouseLeave={() => setDropdownOpen(false)}>
-                            <button
-                                className="nav-link"
-                                onMouseEnter={() => setDropdownOpen(true)}
-                                style={{ display: 'flex', alignItems: 'center' }}
-                            >
-                                <img src={`https://ui-avatars.com/api/?name=${userInfo.name.replace(/\s/g, '+')}&background=random&color=fff`} alt={userInfo.name} style={{ width: '32px', height: '32px', borderRadius: '50%', marginRight: '8px' }} />
-                                {userInfo.name}
-                            </button>
-
-                            {isDropdownOpen && (
+                    <div className="nav-actions">
+                        <form onSubmit={handleSearch} className="nav-search">
+                            <FaSearch style={{color: 'var(--color-text-secondary)'}} />
+                            <input type="text" name="q" placeholder="Search..." />
+                        </form>
+                        <div className="cart-icon" onClick={toggleCart}>
+                            <FaShoppingCart />
+                            {cartItemCount > 0 && <span className="cart-count">{cartItemCount}</span>}
+                        </div>
+                        <div className="nav-dropdown">
+                             <Link to={userInfo ? "/profile" : "/login"} className="nav-user-icon">
+                                <FaUserCircle />
+                            </Link>
+                            {userInfo && (
                                 <div className="dropdown-menu">
-                                    <Link to="/profile" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                                        <i className="fas fa-user"></i> Profile
-                                    </Link>
-                                    {userInfo.isAdmin && (
-                                        <Link to="/admin/orders" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                                            <i className="fas fa-user-shield"></i> Admin Panel
-                                        </Link>
-                                    )}
-                                    <button onClick={logout} className="dropdown-item">
-                                        <i className="fas fa-sign-out-alt"></i> Logout
-                                    </button>
+                                    <Link to="/profile">My Profile</Link>
+                                    <button onClick={logout}>Logout</button>
                                 </div>
                             )}
                         </div>
-                    ) : (
-                        <>
-                            <Link to="/login" className="nav-link">Login</Link>
-                            <Link to="/signup" className="btn-accent" style={{marginLeft: '10px', padding: '8px 20px'}}>Sign Up</Link>
-                        </>
-                    )}
-
-                    <div className="cart-icon" onClick={toggleCart} style={{cursor: 'pointer', position: 'relative'}}>
-                        <i className="fas fa-shopping-cart nav-link"></i>
-                        {cartItemCount > 0 && (
-                            <span className="cart-count">{cartItemCount}</span>
-                        )}
                     </div>
                 </div>
-            </div>
-        </nav>
+            </header>
+        </>
     );
 };
 

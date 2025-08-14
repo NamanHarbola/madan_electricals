@@ -4,7 +4,6 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import CartSidebar from '../components/CartSidebar.jsx';
-import RunningBanner from '../components/RunningBanner.jsx'; // Import banner
 
 const MainLayout = () => {
     const [isCartOpen, setCartOpen] = useState(false);
@@ -12,7 +11,7 @@ const MainLayout = () => {
 
     return (
         <>
-            <RunningBanner /> {/* Use the dynamic banner */}
+            {/* The RunningBanner is now removed from here */}
             <Navbar toggleCart={toggleCart} />
             <main>
                 <Outlet />
