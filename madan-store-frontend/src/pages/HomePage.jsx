@@ -1,112 +1,58 @@
 // src/pages/HomePage.jsx
-
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import ProductCard from '../components/ProductCard';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const HomePage = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    return (
+        <>
+            {/* New Hero Section */}
+            <section className="hero-light">
+                <div className="hero-light-content">
+                    <h1 className="hero-light-title">Madan Store</h1>
+                    <p className="hero-light-subtitle">Premium electronics and professional hardware, curated for excellence.</p>
+                    <a href="#services" className="btn-accent">View Our Products</a>
+                </div>
+            </section>
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data } = await axios.get('http://localhost:5000/api/products');
-        setProducts(data);
-      } catch (err) {
-        setError('Failed to load products from the server.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+            {/* Services Section */}
+            <section id="services" className="services-section">
+                <div className="container">
+                    <h2 className="section-heading">Our Products</h2>
+                    <div className="services-grid">
+                        <div className="service-card">
+                            <img src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=500&q=80" alt="Electronics"/>
+                            <h3>Latest Electronics</h3>
+                            <p>Cutting-edge gadgets and devices to power your life.</p>
+                        </div>
+                        <div className="service-card">
+                            <img src="https://images.unsplash.com/photo-1598369683238-7c25a4186549?w=500&q=80" alt="Hardware Tools"/>
+                            <h3>Professional Hardware</h3>
+                            <p>Durable and reliable tools for any project, big or small.</p>
+                        </div>
+                        <div className="service-card">
+                            <img src="https://images.unsplash.com/photo-1550009158-94ae76552485?w=500&q=80" alt="Accessories"/>
+                            <h3>Premium Accessories</h3>
+                            <p>High-quality accessories to complement your devices.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    fetchProducts();
-  }, []);
-
-  if (loading) {
-    return <div className="container" style={{ padding: '50px', textAlign: 'center' }}>Loading Products...</div>;
-  }
-
-  if (error) {
-    return <div className="container" style={{ padding: '50px', textAlign: 'center', color: 'red' }}>{error}</div>;
-  }
-
-  const trendingProducts = products.filter(p => p.trending);
-
-  // This is the JSX that was missing. It tells React how to display the page.
-  return (
-    <>
-      {/* Hero Section */}
-      <section id="home" className="hero">
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Welcome to Madan Store</h1>
-            <p className="hero-subtitle">Your one-stop shop for premium electronics and professional hardware tools</p>
-            <button className="btn btn--primary btn--lg cta-btn">Shop Now</button>
-          </div>
-          <div className="hero-image">
-            <div className="floating-card electronics-card">
-              <img src="https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=200&h=200&fit=crop" alt="Electronics" />
-              <h3>Electronics</h3>
-            </div>
-            <div className="floating-card hardware-card">
-              <img src="https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200&h=200&fit=crop" alt="Hardware" />
-              <h3>Hardware Tools</h3>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trending Products */}
-      <section className="trending-section">
-        <div className="container">
-          <h2 className="section-title">Trending Products</h2>
-          <div className="trending-products">
-            {trendingProducts.map(product => (
-              <ProductCard key={product._id} product={product} /> // <-- ADD KEY HERE
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <section className="categories-section">
-        <div className="container">
-          <h2 className="section-title">Shop by Category</h2>
-          <div className="categories-grid">
-            <div className="category-card">
-              <img src="https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&h=300&fit=crop" alt="Electronics" />
-              <div className="category-overlay">
-                <h3>Electronics</h3>
-                <p>Latest smartphones, laptops, and gadgets</p>
-              </div>
-            </div>
-            <div className="category-card">
-              <img src="https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400&h=300&fit=crop" alt="Hardware Tools" />
-              <div className="category-overlay">
-                <h3>Hardware Tools</h3>
-                <p>Professional tools for construction and repair</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* All Products Section */}
-      <section id="products" className="products-section">
-        <div className="container">
-          {/* ... (products-header) ... */}
-          <div className="products-grid">
-            {products.map(product => (
-              <ProductCard key={product._id} product={product} /> // <-- AND ADD KEY HERE
-            ))}
-          </div>
-        </div>
-      </section>
-    </>
-  );
+            {/* About Section */}
+            <section id="about" className="about-section-light">
+                <div className="container about-grid">
+                    <div className="about-text-content">
+                        <h2 className="section-heading">Your Trusted Tech Partner</h2>
+                        <p>At Madan Store, we believe in providing not just products, but solutions. We hand-pick every item to ensure it meets our high standards.</p>
+                        <Link to="/about" className="btn-outline-light">Learn More</Link>
+                    </div>
+                    <div className="about-image-content">
+                        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=500&q=80" alt="Team working"/>
+                    </div>
+                </div>
+            </section>
+        </>
+    );
 };
 
 export default HomePage;

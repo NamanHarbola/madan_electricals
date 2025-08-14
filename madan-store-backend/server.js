@@ -18,7 +18,9 @@ app.use(express.json()); // <-- ADD THIS LINE to accept JSON data in the body
 app.use('/api/products', productRoutes);
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/upload', require('./routes/uploadRoutes')); // <-- ADD THIS LINE
+app.use('/api/upload', require('./routes/uploadRoutes')); 
+app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/banners', require('./routes/bannerRoutes')); // <-- ADD THIS
 
 const PORT = process.env.PORT || 5000;
 

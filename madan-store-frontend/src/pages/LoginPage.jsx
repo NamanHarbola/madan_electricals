@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { useAuth } from '../context/AuthContext.jsx';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login } = useAuth(); // Get the login function from context
-    const navigate = useNavigate(); // Get the navigate function for redirection
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,50 +17,46 @@ const LoginPage = () => {
                 'http://localhost:5000/api/auth/login',
                 { email, password }
             );
-            
-            // On successful API call, update the global state
             login(data);
-            
-            // Redirect the user to the homepage
-            navigate('/');
-
+            navigate('/'); // Redirect to homepage on successful login
         } catch (error) {
-            alert(error.response.data.message || 'An error occurred');
+            alert(error.response?.data?.message || 'An error occurred');
         }
     };
 
     return (
-        <div className="container" style={{ maxWidth: '500px', margin: '50px auto' }}>
-            <div className="modal-content" style={{ padding: '24px' }}>
-                <h1 style={{ textAlign: 'center' }}>Login</h1>
+        <div className="form-container">
+            <div className="form-wrapper">
+                <h1>Login</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label>Email Address</label>
+                        <label htmlFor="email">Email Address</label>
                         <input
+                            id="email"
                             type="email"
                             className="form-control"
-                            placeholder="Enter email"
+                            placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>
                     <div className="form-group">
-                        <label>Password</label>
+                        <label htmlFor="password">Password</label>
                         <input
+                            id="password"
                             type="password"
                             className="form-control"
-                            placeholder="Enter password"
+                            placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                     </div>
-                    <button type="submit" className="btn btn--primary btn--full-width">Login</button>
+                    <button type="submit" className="btn-full">Login</button>
                 </form>
-                <p className="auth-switch">
-                    <span>Don't have an account? </span>
-                    <Link to="/signup">Sign Up</Link>
+                <p className="auth-switch-text">
+                    Don't have an account? <Link to="/signup">Sign Up</Link>
                 </p>
             </div>
         </div>

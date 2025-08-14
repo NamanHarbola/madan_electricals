@@ -2,23 +2,24 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+
 const Product = require('./models/Product');
+const Order = require('./models/Order'); // Import Order model
+const User = require('./models/User'); // Import User model
+
 const products = require('./data/products');
+const orders = require('./data/orders'); // Import orders data
 
-// Load env vars
 dotenv.config();
-
-// Connect to DB
 connectDB();
 
-// Function to import data
 const importData = async () => {
   try {
-    // Clear existing data
     await Product.deleteMany();
+    await Order.deleteMany(); // Clear existing orders
 
-    // Insert new data
     await Product.insertMany(products);
+    await Order.insertMany(orders); // Insert sample orders
 
     console.log('✅ Data Imported Successfully!');
     process.exit();
@@ -27,6 +28,7 @@ const importData = async () => {
     process.exit(1);
   }
 };
+// ... (destroyData function should also be updated to delete Orders)
 
 // Function to destroy data
 const destroyData = async () => {

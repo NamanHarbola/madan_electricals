@@ -1,74 +1,75 @@
 // src/pages/SignupPage.jsx
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const SignupPage = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const config = { headers: { 'Content-Type': 'application/json' } };
             const { data } = await axios.post(
                 'http://localhost:5000/api/auth/register',
-                { name, email, password },
-                config
+                { name, email, password }
             );
-            console.log(data); // Contains user info and token
-            alert('Signup successful!');
-            // TODO: Log the user in and redirect
+            login(data); // Log the user in immediately after signup
+            navigate('/'); // Redirect to homepage
         } catch (error) {
-            alert(error.response.data.message || 'An error occurred');
-            console.error(error.response.data);
+            alert(error.response?.data?.message || 'An error occurred');
         }
     };
 
     return (
-        <div className="container" style={{ maxWidth: '500px', margin: '50px auto' }}>
-            <div className="modal-content" style={{ padding: '24px' }}>
-                <h1 style={{ textAlign: 'center' }}>Create Account</h1>
+        <div className="form-container">
+            <div className="form-wrapper">
+                <h1>Create Account</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label>Name</label>
+                        <label htmlFor="name">Full Name</label>
                         <input
+                            id="name"
                             type="text"
                             className="form-control"
-                            placeholder="Enter your name"
+                            placeholder="Your Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
                         />
                     </div>
                     <div className="form-group">
-                        <label>Email Address</label>
+                        <label htmlFor="email">Email Address</label>
                         <input
+                            id="email"
                             type="email"
                             className="form-control"
-                            placeholder="Enter email"
+                            placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>
                     <div className="form-group">
-                        <label>Password</label>
+                        <label htmlFor="password">Password</label>
                         <input
+                            id="password"
                             type="password"
                             className="form-control"
-                            placeholder="Enter password"
+                            placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                     </div>
-                    <button type="submit" className="btn btn--primary btn--full-width">Sign Up</button>
+                    <button type="submit" className="btn-full">Sign Up</button>
                 </form>
-                <p className="auth-switch">
-                    <span>Already have an account? </span>
-                    <Link to="/login">Login</Link>
+                <p className="auth-switch-text">
+                    Already have an account? <Link to="/login">Login</Link>
                 </p>
             </div>
         </div>

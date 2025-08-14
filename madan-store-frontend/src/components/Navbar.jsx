@@ -1,60 +1,71 @@
 // src/components/Navbar.jsx
-
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useCart } from '../context/CartContext.jsx';
 
-const Navbar = ({ onAdminClick }) => {
+const Navbar = ({ toggleCart }) => {
     const { userInfo, logout } = useAuth();
-    // 1. Add state to manage the dropdown's visibility
+    const { cartItems } = useCart();
     const [isDropdownOpen, setDropdownOpen] = useState(false);
 
-    const handleLogout = () => {
-        logout();
-        setDropdownOpen(false); // Close dropdown on logout
-    };
+    const cartItemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
     return (
-        <nav className="navbar">
+        <nav className="navbar scrolled"> {/* Always have a background for clarity */}
             <div className="nav-container">
                 <div className="nav-logo">
                     <Link to="/"><h1>Madan Store</h1></Link>
                 </div>
-                <div className="nav-menu">
-                    <Link to="/" className="nav-link">Home</Link>
-                    {userInfo && userInfo.isAdmin && (
-                        <button className="nav-link admin-btn" onClick={onAdminClick}>
-                            Admin
-                        </button>
-                    )}
-                </div>
-                <div className="nav-actions">
-                    {/* ... (search-box) ... */}
 
+                <div className="nav-menu">
+                    <NavLink to="/" className="nav-link" end>Home</NavLink>
+                    <a href="/#about" className="nav-link">About</a>
+                    <a href="/#services" className="nav-link">Services</a>
+                    <a href="/#contact" className="nav-link">Contact</a>
+                </div>
+
+                <div className="nav-actions">
                     {userInfo ? (
-                        // 2. This container is now a button to toggle the dropdown
-                        <div className="nav-user-info">
-                            <button 
-                                className="nav-link" 
-                                onClick={() => setDropdownOpen(!isDropdownOpen)}
-                                style={{ background: 'none', border: 'none', color: 'var(--color-primary)' }}
+                        <div className="nav-user-info" onMouseLeave={() => setDropdownOpen(false)}>
+                            <button
+                                className="nav-link"
+                                onMouseEnter={() => setDropdownOpen(true)}
+                                style={{ display: 'flex', alignItems: 'center' }}
                             >
-                                Hi, {userInfo.name} <i className="fas fa-chevron-down" style={{ fontSize: '12px', marginLeft: '4px' }}></i>
+                                <img src={`https://ui-avatars.com/api/?name=${userInfo.name.replace(/\s/g, '+')}&background=random&color=fff`} alt={userInfo.name} style={{ width: '32px', height: '32px', borderRadius: '50%', marginRight: '8px' }} />
+                                {userInfo.name}
                             </button>
-                            
-                            {/* 3. Conditionally render the dropdown menu */}
+
                             {isDropdownOpen && (
                                 <div className="dropdown-menu">
-                                    <button onClick={handleLogout} className="dropdown-item">
+                                    <Link to="/profile" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                                        <i className="fas fa-user"></i> Profile
+                                    </Link>
+                                    {userInfo.isAdmin && (
+                                        <Link to="/admin/orders" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                                            <i className="fas fa-user-shield"></i> Admin Panel
+                                        </Link>
+                                    )}
+                                    <button onClick={logout} className="dropdown-item">
                                         <i className="fas fa-sign-out-alt"></i> Logout
                                     </button>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <Link to="/login" className="login-btn">Login</Link>
+                        <>
+                            <Link to="/login" className="nav-link">Login</Link>
+                            <Link to="/signup" className="btn-accent" style={{marginLeft: '10px', padding: '8px 20px'}}>Sign Up</Link>
+                        </>
                     )}
-                    {/* ... (cart-icon) ... */}
+
+                    <div className="cart-icon" onClick={toggleCart} style={{cursor: 'pointer', position: 'relative'}}>
+                        <i className="fas fa-shopping-cart nav-link"></i>
+                        {cartItemCount > 0 && (
+                            <span className="cart-count">{cartItemCount}</span>
+                        )}
+                    </div>
                 </div>
             </div>
         </nav>

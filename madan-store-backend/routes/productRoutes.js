@@ -1,14 +1,17 @@
 // routes/productRoutes.js
 const express = require('express');
 const router = express.Router();
-const { getProducts, createProduct, getProductById } = require('../controllers/productController');
+const {
+    getProducts,
+    getProductById,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+} = require('../controllers/productController');
+// We will add protection later
+// const { protect } = require('../middleware/authMiddleware');
 
-// When a GET request is made to the root of this route ('/'),
-// it will call the getProducts function.
-router.get('/', getProducts);
-// ADD THIS NEW ROUTE
-// This route will handle POST requests to /api/products
-router.post('/', createProduct);
-router.get('/:id', getProductById);
+router.route('/').get(getProducts).post(createProduct);
+router.route('/:id').get(getProductById).put(updateProduct).delete(deleteProduct);
 
 module.exports = router;
