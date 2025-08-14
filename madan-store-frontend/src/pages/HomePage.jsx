@@ -1,71 +1,36 @@
-// src/components/Navbar.jsx
+// src/pages/HomePage.jsx
 import React from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import { useCart } from '../context/CartContext.jsx';
-import { FaShoppingCart, FaUserCircle, FaSearch } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import HeroSlider from '../components/HeroSlider';
+import ProductList from '../components/ProductList'; // Import the new component
 
-const Navbar = ({ toggleCart }) => {
-    const { userInfo, logout } = useAuth();
-    const { cartItems } = useCart();
-    const navigate = useNavigate();
-    const cartItemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        const keyword = e.target.elements.q.value;
-        if (keyword.trim()) {
-            navigate(`/search/${keyword}`);
-        }
-    };
-
+const HomePage = () => {
     return (
         <>
-            <div className="top-bar">
-                Sign up and get 20% off to your first order. 
-                <NavLink to="/signup" style={{textDecoration: 'underline', marginLeft: '8px'}}>Sign Up Now</NavLink>
-            </div>
-            <header className="header">
-                <div className="nav-container">
-                    <div className="nav-logo">
-                        <Link to="/"><h1>SHOP.CO</h1></Link>
+            <HeroSlider />
+
+            {/* This section now dynamically lists products from your database */}
+            <section id="products" className="services-section">
+                <div className="container">
+                    <h2 className="section-heading">Featured Products</h2>
+                    <ProductList />
+                </div>
+            </section>
+
+            <section id="about" className="about-section-light">
+                <div className="container about-grid">
+                    <div className="about-text-content">
+                        <h2 className="section-heading">Your Trusted Tech Partner</h2>
+                        <p>At Madan Store, we believe in providing not just products, but solutions. We hand-pick every item to ensure it meets our high standards.</p>
+                        <Link to="/about" className="btn-outline-light">Learn More</Link>
                     </div>
-
-                    <nav className="nav-menu">
-                        <NavLink to="/" className="nav-link">Home</NavLink>
-                        <a href="/#products" className="nav-link">Products</a>
-                        <a href="/#about" className="nav-link">About</a>
-                        <a href="/#contact" className="nav-link">Contact</a>
-                        {userInfo && userInfo.isAdmin && (
-                            <Link to="/admin/orders" className="nav-link">Admin Panel</Link>
-                        )}
-                    </nav>
-
-                    <div className="nav-actions">
-                        <form onSubmit={handleSearch} className="nav-search">
-                            <FaSearch style={{color: 'var(--color-text-secondary)'}} />
-                            <input type="text" name="q" placeholder="Search..." />
-                        </form>
-                        <div className="cart-icon" onClick={toggleCart}>
-                            <FaShoppingCart />
-                            {cartItemCount > 0 && <span className="cart-count">{cartItemCount}</span>}
-                        </div>
-                        <div className="nav-dropdown">
-                             <Link to={userInfo ? "/profile" : "/login"} className="nav-user-icon">
-                                <FaUserCircle />
-                            </Link>
-                            {userInfo && (
-                                <div className="dropdown-menu">
-                                    <Link to="/profile">My Profile</Link>
-                                    <button onClick={logout}>Logout</button>
-                                </div>
-                            )}
-                        </div>
+                    <div className="about-image-content">
+                        <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=500&q=80" alt="Team working"/>
                     </div>
                 </div>
-            </header>
+            </section>
         </>
     );
 };
 
-export default Navbar;
+export default HomePage;
