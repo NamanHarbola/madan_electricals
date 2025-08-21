@@ -32,7 +32,7 @@ const Categories = () => {
             <div className="container">
                 <h2 className="section-heading">Categories</h2>
                 <div className="category-grid">
-                    {categories.map((category) => (
+                     {categories.slice(0, 6).map((category) => (
                         <Link to={`/category/${category.name.toLowerCase()}`} key={category._id} className="category-card">
                             <img src={category.image} alt={category.name} className="category-image" />
                             <h3>{category.name}</h3>

@@ -22,10 +22,12 @@ const Navbar = ({ toggleCart }) => {
                 </div>
 
                 <nav className="nav-menu">
-                    <NavLink to="/" className="nav-link">Home</NavLink>
-                    <NavLink to="/category/electronics" className="nav-link">Electronics</NavLink>
-                    <NavLink to="/category/hardware" className="nav-link">Hardware</NavLink>
-                    <NavLink to="/#about" className="nav-link">About</NavLink>
+                    <NavLink to="/category/air-conditioner" className="nav-link">Air Conditioner</NavLink>
+                    <NavLink to="/category/electricals" className="nav-link">Electricals</NavLink>
+                    <NavLink to="/category/heater-blower" className="nav-link">Heater & Blower</NavLink>
+                    <NavLink to="/category/chimney" className="nav-link">Chimney</NavLink>
+                    <NavLink to="/category/accessories" className="nav-link">Accessories</NavLink>
+                    <NavLink to="/about" className="nav-link">About</NavLink>
                 </nav>
 
                 <div className="nav-actions">

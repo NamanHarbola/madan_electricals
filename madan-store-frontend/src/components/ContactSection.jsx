@@ -10,11 +10,12 @@ const ContactSection = () => {
                 <div className="contact-grid">
                     <div className="contact-info">
                         <h3>Madan Electricals</h3>
-                        <p>Shop No. 13, A Block Market, Kavi Nagar, Ghaziabad, Uttar Pradesh 201002</p>
+                        <p>SHOP NO. 15, A BLOCK SUPERMARKET RAMPRASTHA COLONY GHAZIABAD UTTAR PRADESH 201011</p>
                         <ul>
-                            <li><FaPhone /> +91-98102-86524</li>
-                            <li><FaEnvelope /> madanelectricals@gmail.com</li>
+                            <li><FaPhone /> +91-9810652432</li>
+                           <li><FaEnvelope /> namanharbola3@gmail.com</li>
                             <li><FaClock /> Mon-Sun: 9:00 AM - 8:00 PM</li>
+                            <li><b>Tuesday: Closed</b></li>
                         </ul>
                     </div>
                     <div className="contact-map">

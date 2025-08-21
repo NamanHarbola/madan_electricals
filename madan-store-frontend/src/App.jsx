@@ -20,6 +20,7 @@ import SignupPage from './pages/SignupPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import SearchPage from './pages/SearchPage.jsx';
 import CategoryPage from './pages/CategoryPage.jsx'; // <-- Import new page
+import AboutPage from './pages/AboutPage.jsx';
 import AdminOrdersPage from './pages/AdminOrdersPage.jsx';
 import AdminProductsPage from './pages/AdminProductsPage.jsx';
 import AdminAddProductPage from './pages/AdminAddProductPage.jsx';
@@ -44,6 +45,7 @@ function App() {
               <Route path="category/:categoryName" element={<CategoryPage />} /> {/* <-- Add new route */}
               <Route path="login" element={<LoginPage />} />
               <Route path="signup" element={<SignupPage />} />
+              <Route path="about" element={<AboutPage />} />
               <Route path="" element={<ProtectedRoute />}>
                 <Route path="profile" element={<ProfilePage />} />
               </Route>
