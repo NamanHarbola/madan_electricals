@@ -11,6 +11,20 @@ const getActiveBanners = async (req, res) => {
     }
 };
 
+// --- NEW --- Get single banner by ID (for editing)
+const getBannerById = async (req, res) => {
+    try {
+        const banner = await Banner.findById(req.params.id);
+        if (banner) {
+            res.json(banner);
+        } else {
+            res.status(404).json({ message: 'Banner not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 // Create a new banner (Admin)
 const createBanner = async (req, res) => {
     try {
@@ -19,7 +33,6 @@ const createBanner = async (req, res) => {
             return res.status(400).json({ message: 'Banner image and title are required' });
         }
         
-        // THE FIX: Explicitly set isActive to true when creating a new banner.
         const banner = new Banner({ 
             image, 
             title, 
@@ -30,7 +43,29 @@ const createBanner = async (req, res) => {
         const createdBanner = await banner.save();
         res.status(201).json(createdBanner);
     } catch (error) {
-        console.error(error); // Log the error for better debugging
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// --- NEW --- Update a banner
+const updateBanner = async (req, res) => {
+    try {
+        const { title, link, image, isActive } = req.body;
+        const banner = await Banner.findById(req.params.id);
+
+        if (banner) {
+            banner.title = title || banner.title;
+            banner.link = link || banner.link;
+            banner.image = image || banner.image;
+            banner.isActive = isActive;
+
+            const updatedBanner = await banner.save();
+            res.json(updatedBanner);
+        } else {
+            res.status(404).json({ message: 'Banner not found' });
+        }
+    } catch (error) {
         res.status(500).json({ message: 'Server Error' });
     }
 };
@@ -50,4 +85,4 @@ const deleteBanner = async (req, res) => {
     }
 };
 
-module.exports = { getActiveBanners, createBanner, deleteBanner };
+module.exports = { getActiveBanners, createBanner, deleteBanner, getBannerById, updateBanner };

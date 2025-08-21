@@ -28,6 +28,7 @@ import AdminBannerPage from './pages/AdminBannerPage.jsx';
 import AdminCategoriesPage from './pages/AdminCategoriesPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx'; // Import new page
 import AdminCustomersPage from './pages/AdminCustomersPage.jsx';
+import AdminEditBannerPage from './pages/AdminEditBannerPage.jsx'; 
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
                 <Route path="product/:id/edit" element={<AdminEditProductPage />} />
                 <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="banners" element={<AdminBannerPage />} />
+                <Route path="banner/:id/edit" element={<AdminEditBannerPage />} />
                 <Route path="customers" element={<AdminCustomersPage />} /> {/* Add new route */}
               </Route>
             </Route>

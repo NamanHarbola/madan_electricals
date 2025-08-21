@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 
 const AdminBannerPage = () => {
     const [banners, setBanners] = useState([]);
@@ -81,18 +82,18 @@ const AdminBannerPage = () => {
 
     return (
         <div className="admin-page-container">
-            <h1 className="page-title" style={{paddingTop: 0}}>Manage Homepage Banners</h1>
+            <h1 className="page-title" style={{ paddingTop: 0 }}>Manage Homepage Banners</h1>
             <div className="form-wrapper" style={{ maxWidth: '100%', padding: '30px', margin: '0 0 40px 0' }}>
                 <h3>Add New Banner</h3>
                 <form onSubmit={submitHandler}>
                     {/* --- ADDED TITLE AND LINK FIELDS --- */}
                     <div className="form-group">
                         <label htmlFor="title">Banner Title (for accessibility)</label>
-                        <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="form-control" required placeholder="e.g., Summer Sale"/>
+                        <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="form-control" required placeholder="e.g., Summer Sale" />
                     </div>
-                     <div className="form-group">
+                    <div className="form-group">
                         <label htmlFor="link">Link (what page it goes to)</label>
-                        <input type="text" id="link" value={link} onChange={(e) => setLink(e.target.value)} className="form-control" placeholder="e.g., /category/electronics"/>
+                        <input type="text" id="link" value={link} onChange={(e) => setLink(e.target.value)} className="form-control" placeholder="e.g., /category/electronics" />
                     </div>
                     <div className="form-group">
                         <label htmlFor="image-file-input">Banner Image</label>
@@ -123,6 +124,9 @@ const AdminBannerPage = () => {
                                 <td>{banner.title}</td>
                                 <td>{banner.link}</td>
                                 <td>
+                                    <Link to={`/admin/banner/${banner._id}/edit`}>
+                                        <button className="btn-icon" title="Edit Banner">✏️</button>
+                                    </Link>
                                     <button onClick={() => deleteHandler(banner._id)} className="btn-icon" title="Delete Banner">🗑️</button>
                                 </td>
                             </tr>

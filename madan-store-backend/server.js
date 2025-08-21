@@ -17,11 +17,13 @@ app.use(express.json()); // <-- to accept JSON data in the body
 // API Version 1 Routes
 const v1Routes = express.Router();
 v1Routes.use('/products', require('./routes/productRoutes'));
+v1Routes.use('/users', require('./routes/userRoutes'));
 v1Routes.use('/auth', require('./routes/authRoutes'));
 v1Routes.use('/upload', require('./routes/uploadRoutes'));
 v1Routes.use('/orders', require('./routes/orderRoutes'));
 v1Routes.use('/banners', require('./routes/bannerRoutes'));
 v1Routes.use('/categories', require('./routes/categoryRoutes'));
+v1Routes.use('/admin', require('./routes/adminRoutes'));
 
 app.use('/api/v1', v1Routes);
 

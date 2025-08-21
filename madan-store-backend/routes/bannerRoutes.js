@@ -1,14 +1,17 @@
 // routes/bannerRoutes.js
 const express = require('express');
 const router = express.Router();
-const { getActiveBanners, createBanner, deleteBanner } = require('../controllers/bannerController');
+const { getActiveBanners, createBanner, deleteBanner, getBannerById, updateBanner } = require('../controllers/bannerController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// Public route to get banners for display
+// Public route
 router.get('/', getActiveBanners);
 
-// Admin routes to manage banners
+// Admin routes
 router.post('/', protect, admin, createBanner);
-router.delete('/:id', protect, admin, deleteBanner);
+router.route('/:id')
+    .get(protect, admin, getBannerById)
+    .put(protect, admin, updateBanner)
+    .delete(protect, admin, deleteBanner);
 
 module.exports = router;
