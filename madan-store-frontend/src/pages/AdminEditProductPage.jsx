@@ -12,15 +12,15 @@ const AdminEditProductPage = () => {
     const { userInfo } = useAuth();
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [categories, setCategories] = useState([]);
     const [product, setProduct] = useState({
         name: '',
         price: '',
         mrp: '',
-        category: 'electronics',
+        category: '',
         images: [],
         description: '',
         stock: '',
-        rating: '',
         trending: false,
     });
 
@@ -35,7 +35,18 @@ const AdminEditProductPage = () => {
                 setLoading(false);
             }
         };
+
+        const fetchCategories = async () => {
+            try {
+                const { data } = await axios.get('/api/v1/categories');
+                setCategories(data);
+            } catch (error) {
+                toast.error('Could not fetch categories.');
+            }
+        };
+
         fetchProduct();
+        fetchCategories();
     }, [id]);
 
     const handleChange = (e) => {
@@ -62,7 +73,7 @@ const AdminEditProductPage = () => {
                 },
             };
             const { data } = await axios.post('/api/v1/upload', formData, config);
-            setProduct(prevState => ({ ...prevState, images: [data.imageUrl, ...prevState.images.slice(1)] }));
+            setProduct(prevState => ({ ...prevState, images: [data.imageUrl] }));
             toast.success('Image uploaded successfully!');
         } catch (error) {
             toast.error('Image upload failed.');
@@ -117,7 +128,7 @@ const AdminEditProductPage = () => {
                         <textarea id="description" name="description" value={product.description} onChange={handleChange} className="form-control" rows="4" required></textarea>
                     </div>
 
-                     <div className="form-row" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
+                    <div className="form-row" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
                         <div className="form-group">
                             <label htmlFor="stock">Stock</label>
                             <input type="number" id="stock" name="stock" value={product.stock} onChange={handleChange} className="form-control" required />
@@ -125,8 +136,10 @@ const AdminEditProductPage = () => {
                         <div className="form-group">
                             <label htmlFor="category">Category</label>
                             <select id="category" name="category" value={product.category} onChange={handleChange} className="form-control">
-                                <option value="electronics">Electronics</option>
-                                <option value="hardware">Hardware</option>
+                                <option value="">Select Category</option>
+                                {categories.map((cat) => (
+                                    <option key={cat._id} value={cat.name}>{cat.name}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -142,7 +155,7 @@ const AdminEditProductPage = () => {
                         {uploading && <p>Uploading image...</p>}
                     </div>
 
-                     <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
+                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
                         <input type="checkbox" id="trending" name="trending" checked={product.trending} onChange={handleChange} style={{ width: 'auto', height: 'auto' }} />
                         <label htmlFor="trending" style={{marginBottom: 0}}>Mark as Trending</label>
                     </div>

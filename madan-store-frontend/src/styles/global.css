@@ -211,32 +211,40 @@ main {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: var(--space-24);
 }
+/* Find and replace the existing .category-card, .category-card:hover, .category-card h3, and .category-image styles with the code below */
+
 .category-card {
-    background: var(--color-background);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-base);
-    padding: var(--space-24);
     text-align: center;
     text-decoration: none;
     color: var(--color-text);
     transition: var(--transition-fast);
+    overflow: hidden; /* Keeps the image within the card's rounded corners */
+    display: flex;
+    flex-direction: column;
 }
+
 .category-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-md);
     border-color: var(--color-primary);
 }
+
 .category-card h3 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     margin: 0;
+    padding: var(--space-16); /* Text now has its own padding */
 }
+
 .category-image {
     width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: var(--radius-base);
-    margin-bottom: var(--space-16);
+    aspect-ratio: 1 / 1; /* This forces the image container to be a perfect square */
+    object-fit: cover; /* This makes the image fill the square without stretching */
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
 }
 .product-grid {
     display: grid;

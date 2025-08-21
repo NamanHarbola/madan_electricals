@@ -13,7 +13,9 @@ const getProducts = async (req, res) => {
             filter.name = { $regex: keyword, $options: 'i' };
         }
         if (category) {
-            filter.category = category;
+            // Create a case-insensitive regex from the category name, allowing for URL-friendly dashes
+            const categoryRegex = new RegExp(`^${category.replace(/-/g, ' ')}$`, 'i');
+            filter.category = { $regex: categoryRegex };
         }
 
         const products = await Product.find(filter);

@@ -12,6 +12,12 @@ const orders = [
         product: '689c1a1b8b642433d728c95f' // Sample product ID
       },
     ],
+    shippingInfo: {
+      address: '123 Main St',
+      city: 'Ghaziabad',
+      postalCode: '201001',
+      country: 'India',
+    },
     totalPrice: 999,
     status: 'Paid' // Corrected from 'Delivered' to 'Paid'
   },

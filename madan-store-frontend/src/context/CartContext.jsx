@@ -1,5 +1,6 @@
 // src/context/CartContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 const CartContext = createContext(null);
 
@@ -22,19 +23,25 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = (product) => {
         setCartItems(prevItems => {
-            const exist = prevItems.find(item => item._id === product._id);
-            if (exist) {
+            const existingItem = prevItems.find(item => item._id === product._id);
+
+            // Check against stock before adding
+            if (existingItem && existingItem.qty >= product.stock) {
+                toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
+                return prevItems; // Return items unchanged
+            }
+
+            if (existingItem) {
                 // If item exists, update its quantity
                 return prevItems.map(item =>
                     item._id === product._id ? { ...item, qty: item.qty + 1 } : item
                 );
             } else {
                 // If item doesn't exist, add it to the cart with quantity 1
+                toast.success(`${product.name} added to cart!`);
                 return [...prevItems, { ...product, qty: 1 }];
             }
         });
-        // We can remove the alert for a smoother user experience
-        // alert(`${product.name} added to cart!`);
     };
 
     const removeFromCart = (productId) => {
@@ -42,6 +49,13 @@ export const CartProvider = ({ children }) => {
     };
 
     const updateCartQuantity = (productId, newQty) => {
+        const itemToUpdate = cartItems.find(item => item._id === productId);
+
+        if (newQty > itemToUpdate.stock) {
+            toast.error(`Only ${itemToUpdate.stock} units of ${itemToUpdate.name} are available.`);
+            return;
+        }
+
         if (newQty <= 0) {
             removeFromCart(productId);
         } else {

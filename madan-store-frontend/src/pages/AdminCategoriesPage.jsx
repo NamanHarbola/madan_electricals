@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 
 const AdminCategoriesPage = () => {
     const [categories, setCategories] = useState([]);
@@ -111,6 +112,9 @@ const AdminCategoriesPage = () => {
                                 <td><img src={category.image} alt={category.name} style={{ width: '100px', height: 'auto', borderRadius: '4px' }} /></td>
                                 <td>{category.name}</td>
                                 <td>
+                                    <Link to={`/admin/category/${category._id}/edit`}>
+                                        <button className="btn-icon" title="Edit Category">✏️</button>
+                                    </Link>
                                     <button onClick={() => deleteHandler(category._id)} className="btn-icon" title="Delete Category">🗑️</button>
                                 </td>
                             </tr>

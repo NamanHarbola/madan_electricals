@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
 const Product = require('./models/Product');
+const Category = require('./models/Category'); // Import Category model
 const Order = require('./models/Order'); // Import Order model
 const User = require('./models/User'); // Import User model
 
@@ -16,10 +17,24 @@ connectDB();
 const importData = async () => {
   try {
     await Product.deleteMany();
-    await Order.deleteMany(); // Clear existing orders
+    await Category.deleteMany(); // Clear existing categories
+        await Order.deleteMany(); // Clear existing orders
+
+        // Create and insert categories first
+        const sampleCategories = [
+            { name: "Electronics", image: "/images/electronics.jpg" },
+            { name: "Hardware", image: "/images/hardware.jpg" },
+            { name: "Air Conditioner", image: "/images/ac.jpg" },
+            { name: "Cooler", image: "/images/cooler.jpg" },
+            { name: "Geyser", image: "/images/geyser.jpg" },
+            { name: "Fans", image: "/images/fans.jpg" }
+        ];
+        await Category.insertMany(sampleCategories);
+        console.log('✅ Categories Imported!');
 
     await Product.insertMany(products);
-    await Order.insertMany(orders); // Insert sample orders
+    console.log('✅ Products Imported!');
+      await Order.insertMany(orders); // Insert sample orders
 
     console.log('✅ Data Imported Successfully!');
     process.exit();
@@ -33,6 +48,8 @@ const importData = async () => {
 // Function to destroy data
 const destroyData = async () => {
   try {
+    await Order.deleteMany();
+    await Category.deleteMany();
     await Product.deleteMany();
     console.log('✅ Data Destroyed Successfully!');
     process.exit();

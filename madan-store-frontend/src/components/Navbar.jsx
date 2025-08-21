@@ -1,7 +1,7 @@
 // src/components/Navbar.jsx
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx'; 
 import { useCart } from '../context/CartContext.jsx';
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 
@@ -22,12 +22,10 @@ const Navbar = ({ toggleCart }) => {
                 </div>
 
                 <nav className="nav-menu">
-                    <NavLink to="/category/air-conditioner" className="nav-link">Air Conditioner</NavLink>
-                    <NavLink to="/category/electricals" className="nav-link">Electricals</NavLink>
-                    <NavLink to="/category/heater-blower" className="nav-link">Heater & Blower</NavLink>
-                    <NavLink to="/category/chimney" className="nav-link">Chimney</NavLink>
-                    <NavLink to="/category/accessories" className="nav-link">Accessories</NavLink>
-                    <NavLink to="/about" className="nav-link">About</NavLink>
+                    <NavLink to="/" className="nav-link">Home</NavLink>
+                    <NavLink to="/categories" className="nav-link">Categories</NavLink>
+                    <a href="/#about" className="nav-link">About Us</a>
+                    <a href="/#contact" className="nav-link">Contact Us</a>
                 </nav>
 
                 <div className="nav-actions">
@@ -42,7 +40,7 @@ const Navbar = ({ toggleCart }) => {
 
                     {userInfo ? (
                         <>
-                            <NavLink to="/profile" className="nav-link icon-link">
+                             <NavLink to="/profile" className="nav-link icon-link">
                                 <FaUserCircle title={userInfo.name} />
                             </NavLink>
                             <button onClick={logout} className="nav-link">Logout</button>

@@ -3,8 +3,10 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 // FIX: Added FaTags to the import list
 import { FaTachometerAlt, FaBoxOpen, FaShoppingCart, FaUsers, FaCog, FaSignOutAlt, FaBullhorn, FaTags } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const AdminSidebar = () => {
+    const { logout } = useAuth();
     return (
         <aside className="admin-sidebar">
             <div className="sidebar-header">
@@ -34,7 +36,7 @@ const AdminSidebar = () => {
                 <NavLink to="/admin/settings" className="sidebar-link">
                     <FaCog /><span>Settings</span>
                 </NavLink>
-                <button className="sidebar-link logout-btn">
+                <button onClick={logout} className="sidebar-link logout-btn">
                     <FaSignOutAlt /><span>Log out</span>
                 </button>
             </div>

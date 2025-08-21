@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('userInfo');
         setUserInfo(null);
-        // Optionally, redirect to home page
+        // This is a safe way to redirect after logout
         window.location.href = '/login';
     };
 

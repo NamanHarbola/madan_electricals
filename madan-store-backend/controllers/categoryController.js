@@ -13,6 +13,22 @@ const getCategories = async (req, res) => {
     }
 };
 
+// @desc    Get a single category by ID
+// @route   GET /api/v1/categories/:id
+// @access  Private/Admin
+const getCategoryById = async (req, res) => {
+    try {
+        const category = await Category.findById(req.params.id);
+        if (category) {
+            res.json(category);
+        } else {
+            res.status(404).json({ message: 'Category not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 // @desc    Create a category
 // @route   POST /api/v1/categories
 // @access  Private/Admin
@@ -38,6 +54,29 @@ const createCategory = async (req, res) => {
     }
 };
 
+// @desc    Update a category
+// @route   PUT /api/v1/categories/:id
+// @access  Private/Admin
+const updateCategory = async (req, res) => {
+    const { name, image } = req.body;
+
+    try {
+        const category = await Category.findById(req.params.id);
+
+        if (category) {
+            category.name = name || category.name;
+            category.image = image || category.image;
+
+            const updatedCategory = await category.save();
+            res.json(updatedCategory);
+        } else {
+            res.status(404).json({ message: 'Category not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 // @desc    Delete a category
 // @route   DELETE /api/v1/categories/:id
 // @access  Private/Admin
@@ -55,4 +94,10 @@ const deleteCategory = async (req, res) => {
     }
 };
 
-module.exports = { getCategories, createCategory, deleteCategory };
+module.exports = {
+    getCategories,
+    getCategoryById,
+    createCategory,
+    updateCategory,
+    deleteCategory
+};
