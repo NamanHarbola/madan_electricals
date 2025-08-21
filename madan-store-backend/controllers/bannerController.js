@@ -15,13 +15,22 @@ const getActiveBanners = async (req, res) => {
 const createBanner = async (req, res) => {
     try {
         const { image, title, link } = req.body;
-        if (!image) {
-            return res.status(400).json({ message: 'Banner image is required' });
+        if (!image || !title) {
+            return res.status(400).json({ message: 'Banner image and title are required' });
         }
-        const banner = new Banner({ image, title, link });
+        
+        // THE FIX: Explicitly set isActive to true when creating a new banner.
+        const banner = new Banner({ 
+            image, 
+            title, 
+            link, 
+            isActive: true 
+        });
+
         const createdBanner = await banner.save();
         res.status(201).json(createdBanner);
     } catch (error) {
+        console.error(error); // Log the error for better debugging
         res.status(500).json({ message: 'Server Error' });
     }
 };
