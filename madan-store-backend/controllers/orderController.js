@@ -47,7 +47,7 @@ const getMyOrders = async (req, res) => {
  */
 const createOrder = async (req, res) => {
     try {
-        const { orderItems, totalPrice, paymentMethod } = req.body;
+        const { orderItems, shippingInfo, totalPrice, paymentMethod, shippingPrice } = req.body;
 
         if (!orderItems || orderItems.length === 0) {
             return res.status(400).json({ message: 'No order items' });
@@ -59,6 +59,8 @@ const createOrder = async (req, res) => {
         const order = new Order({
             user: req.user._id,
             orderItems: orderItems.map(item => ({ ...item, product: item._id, _id: undefined })),
+            shippingInfo,
+            shippingPrice,
             totalPrice,
             paymentMethod,
             isPaid,

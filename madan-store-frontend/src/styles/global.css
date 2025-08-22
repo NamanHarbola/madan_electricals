@@ -821,3 +821,198 @@ main {
         font-size: 2.2rem;
     }
 }
+/* --- 16. Hero Slider Content & Search --- */
+.hero-content {
+position: absolute;
+    bottom: 15px; /* Position from the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: 100%;
+    max-width: 500px; /* Make the bar smaller */    
+    padding: 0 20px;
+
+}
+
+.hero-search-form {
+    display: flex;
+    background: transparent; /* Fully transparent background */
+    border-radius: var(--radius-base);
+    border: 1px solid var(--color-text); /* Dark border for better contrast */
+}
+
+.hero-search-input {
+    flex-grow: 1;
+    padding: 12px 14px; /* Reduced padding to make it smaller */
+    border: none;
+    border-radius: var(--radius-base) 0 0 var(--radius-base); 
+    background: transparent; /* Transparent input background */
+   color: var(--color-white);
+
+    font-size: 16px;
+}
+
+.hero-search-input:focus {
+    outline: none;
+}
+.hero-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-search-button {
+    padding: 12px 20px; /* Reduced padding to make it smaller */
+    border: none;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    font-size: 14px; /* Reduced font size */
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 0 var(--radius-base) var(--radius-base) 0;
+    transition: var(--transition-fast);
+}
+
+.hero-search-button:hover {
+    background-color: var(--color-primary-hover);
+}
+/* --- 17. Full Page Cart --- */
+.cart-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-32);
+    align-items: flex-start;
+}
+
+.cart-items-list {
+    background: var(--color-surface);
+    border-radius: var(--radius-base);
+    padding: var(--space-16);
+    border: 1px solid var(--color-border);
+}
+
+.cart-page-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-16) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.cart-page-item:last-child {
+    border-bottom: none;
+}
+
+.cart-page-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-base);
+}
+
+.cart-item-info {
+    flex-grow: 1;
+}
+
+.cart-item-info a {
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.cart-item-info a:hover {
+    color: var(--color-primary);
+}
+
+.cart-item-info h4 {
+    margin: 4px 0 0 0;
+    font-size: 1.1rem;
+    color: var(--color-accent);
+}
+
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+}
+
+.cart-item-actions input {
+    width: 60px;
+    text-align: center;
+}
+
+.cart-item-actions button {
+    color: var(--color-error);
+    font-size: 1rem;
+}
+
+.cart-summary {
+    background: var(--color-surface);
+    border-radius: var(--radius-base);
+    padding: var(--space-24);
+    border: 1px solid var(--color-border);
+    position: sticky;
+    top: 100px; /* Aligns with header height + some padding */
+}
+
+.cart-summary h3 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: var(--space-24);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--space-16);
+    font-size: 1.1rem;
+}
+
+.summary-row.total {
+    font-weight: 700;
+    font-size: 1.3rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-16);
+    margin-top: var(--space-16);
+}
+
+/* --- 18. Admin Order Detail Page --- */
+.order-details-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-32);
+    align-items: flex-start;
+}
+
+.order-items-summary, .order-shipping-summary {
+    background: var(--color-surface);
+    border-radius: var(--radius-base);
+    padding: var(--space-24);
+    border: 1px solid var(--color-border);
+}
+
+.order-items-summary h3, .order-shipping-summary h3 {
+    margin-top: 0;
+}
+
+.order-shipping-summary p {
+    margin: 0 0 10px 0;
+}
+
+.order-shipping-summary hr {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: 20px 0;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 992px) {
+    .cart-layout, .order-details-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .cart-page-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

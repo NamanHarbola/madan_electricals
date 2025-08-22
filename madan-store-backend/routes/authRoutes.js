@@ -23,6 +23,14 @@ router.post(
     registerUser
 );
 
-router.post('/login', loginUser);
+router.post(
+    '/login',
+    [
+        check('email', 'Please include a valid email').isEmail(),
+        check('password', 'Password is required').exists(),
+    ],
+    validateRequest,
+    loginUser
+);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 // src/pages/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from 'axios'; 
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import formatCurrency from '../utils/formatCurrency.js';
 import { toast } from 'react-toastify';
@@ -8,9 +9,22 @@ import { toast } from 'react-toastify';
 const ProfilePage = () => {
     const { userInfo } = useAuth();
     const [orders, setOrders] = useState([]);
+    const [profile, setProfile] = useState({});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+const fetchProfile = async () => {
+            try {
+                const config = {
+                    headers: { Authorization: `Bearer ${userInfo.token}` },
+                };
+                const { data } = await axios.get('/api/v1/profile', config);
+                setProfile(data);
+            } catch (error) {
+                toast.error('Could not fetch profile.');
+            }
+        };
+
         const fetchMyOrders = async () => {
             try {
                 const config = {
@@ -28,6 +42,7 @@ const ProfilePage = () => {
         };
 
         if (userInfo) {
+            fetchProfile();
             fetchMyOrders();
         }
     }, [userInfo]);
@@ -38,8 +53,16 @@ const ProfilePage = () => {
             <div className="profile-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px' }}>
                 <div className="profile-details" style={{ background: 'var(--color-surface)', padding: '20px', borderRadius: 'var(--radius-base)', boxShadow: 'var(--shadow-sm)'}}>
                     <h3 style={{marginTop: '0'}}>User Details</h3>
-                    <p><strong>Name:</strong> {userInfo.name}</p>
-                    <p><strong>Email:</strong> {userInfo.email}</p>
+                    <p><strong>Name:</strong> {profile.name}</p>
+                    <p><strong>Email:</strong> {profile.email}</p>
+
+                    <h4 style={{marginTop: '20px'}}>Shipping Address</h4>
+                    {profile.shippingAddress ? (
+                        <p>{profile.shippingAddress.address}, {profile.shippingAddress.city}, {profile.shippingAddress.postalCode}</p>
+                    ) : (
+                        <p>No shipping address set.</p>
+                   )}
+                    <Link to="/profile/edit" className="btn-full" style={{marginTop: '20px'}}>Edit Profile</Link>
                 </div>
                 
                 <div className="order-history">

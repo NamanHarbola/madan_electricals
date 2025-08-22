@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import formatCurrency from '../utils/formatCurrency.js';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx'; 
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner.jsx'; // Import spinner
 
@@ -72,6 +73,7 @@ const AdminOrdersPage = () => {
                                 <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                 <td>{formatCurrency(order.totalPrice)}</td>
                                 <td>{order.isPaid ? 'Yes' : 'No'}</td>
+                                <td><Link to={`/admin/order/${order._id}`}>View Details</Link></td>
                                 <td>
                                     <span className={`status-badge ${order.status.toLowerCase()}`}>
                                         {order.status}

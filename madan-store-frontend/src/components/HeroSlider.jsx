@@ -1,14 +1,18 @@
 // src/components/HeroSlider.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import LoadingSpinner from './LoadingSpinner';
 
 const HeroSlider = () => {
     const [banners, setBanners] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [keyword, setKeyword] = useState('');
     const [isHovering, setIsHovering] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchBanners = async () => {
@@ -42,6 +46,15 @@ const HeroSlider = () => {
 
     const prevSlide = () => {
         if (banners.length > 1) setCurrentIndex((prevIndex) => (prevIndex - 1 + banners.length) % banners.length);
+    };
+
+    const submitHandler = (e) => {
+        e.preventDefault();
+        if (keyword.trim()) {
+            navigate(`/search/${keyword}`);
+        } else {
+            navigate('/');
+        }
     };
 
     const goToSlide = (index) => {
@@ -79,6 +92,19 @@ const HeroSlider = () => {
                     style={{ backgroundImage: `url(${banner.image})` }}
                 />
             ))}
+
+<div className="hero-content">
+                <form onSubmit={submitHandler} className="hero-search-form">
+                    <input
+                        type="text"
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="Enter your query..."
+                        className="hero-search-input"
+                    />
+                    <button type="submit" className="hero-search-button">Search</button>
+                </form>
+            </div>
+
 
             {banners.length > 1 && (
                 <>

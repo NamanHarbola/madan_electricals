@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 
-const Navbar = ({ toggleCart }) => {
+const Navbar = () => {
     const { userInfo, logout } = useAuth();
     const { cartItems } = useCart();
 
@@ -23,7 +23,7 @@ const Navbar = ({ toggleCart }) => {
 
                 <nav className="nav-menu">
                     <NavLink to="/" className="nav-link">Home</NavLink>
-                    <NavLink to="/categories" className="nav-link">Categories</NavLink>
+                    <a href="/#categories" className="nav-link">Categories</a>
                     <a href="/#about" className="nav-link">About Us</a>
                     <a href="/#contact" className="nav-link">Contact Us</a>
                 </nav>
@@ -33,10 +33,10 @@ const Navbar = ({ toggleCart }) => {
                         <NavLink to="/admin/orders" className="nav-link">Admin Panel</NavLink>
                     )}
 
-                    <div className="cart-icon-wrapper" onClick={toggleCart}>
+                    <Link to="/checkout" className="cart-icon-wrapper">
                         <FaShoppingCart />
                         {cartItemCount > 0 && <span className="cart-count">{cartItemCount}</span>}
-                    </div>
+                    </Link>
 
                     {userInfo ? (
                         <>

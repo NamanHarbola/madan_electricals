@@ -19,7 +19,7 @@ const ProductDetailPage = () => {
 
     const fetchProduct = async () => {
         try {
-            const { data } = await axios.get(`http://localhost:5000/api/v1/products/${id}`);
+            const { data } = await axios.get(`/api/v1/products/${id}`);
             setProduct(data);
         } catch (err) {
             setError('Could not load product details.');
@@ -41,7 +41,7 @@ const ProductDetailPage = () => {
                     Authorization: `Bearer ${userInfo.token}`,
                 },
             };
-            await axios.post(`http://localhost:5000/api/v1/products/${id}/reviews`, { rating, comment }, config);
+            await axios.post(`/api/v1/products/${id}/reviews`, { rating, comment }, config);
             toast.success('Review submitted successfully');
             setRating(0);
             setComment('');

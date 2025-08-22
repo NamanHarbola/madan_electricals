@@ -11,7 +11,12 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:5173', // Your frontend's address
+  optionsSuccessStatus: 200 
+};
+
+app.use(cors(corsOptions));
 app.use(express.json()); // <-- to accept JSON data in the body
 
 // API Version 1 Routes
@@ -23,6 +28,8 @@ v1Routes.use('/upload', require('./routes/uploadRoutes'));
 v1Routes.use('/orders', require('./routes/orderRoutes'));
 v1Routes.use('/banners', require('./routes/bannerRoutes'));
 v1Routes.use('/categories', require('./routes/categoryRoutes'));
+v1Routes.use('/payment', require('./routes/paymentRoutes'));
+v1Routes.use('/profile', require('./routes/profileRoutes'));
 v1Routes.use('/admin', require('./routes/adminRoutes'));
 
 app.use('/api/v1', v1Routes);
