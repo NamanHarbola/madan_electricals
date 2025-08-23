@@ -31,6 +31,9 @@ const AdminSidebar = () => {
                 <NavLink to="/admin/customers" className="sidebar-link">
                     <FaUsers /><span>Customers</span>
                 </NavLink>
+                <NavLink to="/admin/about" className="sidebar-link">
+                    <FaInfoCircle /><span>Manage About Page</span>
+                </NavLink>
             </nav>
             <div className="sidebar-footer">
                 <NavLink to="/admin/settings" className="sidebar-link">

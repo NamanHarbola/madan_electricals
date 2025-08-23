@@ -3,6 +3,9 @@ import React from 'react';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa';
 
 const ContactSection = () => {
+    // This is the corrected Google Maps embed URL for your store's address
+    const mapSrc = "https://maps.google.com/maps?q=Madan%20Electricals%20Rampuri%20Ghaziabad&t=&z=15&ie=UTF8&iwloc=&output=embed";
+
     return (
         <section id="contact" className="contact-section">
             <div className="container">
@@ -20,13 +23,14 @@ const ContactSection = () => {
                     </div>
                     <div className="contact-map">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3501.087915310218!2d77.4429933150831!3d28.65706898240804!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cf1de78222223%3A0x88628a7a5b5e390!2sMADAN%20ELECTRICALS!5e0!3m2!1sen!2sin!4v1661771112345!5m2!1sen!2sin"
+                            src={mapSrc}
                             width="100%"
                             height="450"
                             style={{ border: 0 }}
                             allowFullScreen=""
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
+                            title="Madan Electricals Location"
                         ></iframe>
                     </div>
                 </div>

@@ -1,22 +1,22 @@
-/* === ELEGANT EARTH THEME (Cream & Tan) === */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+/* === MODERN & CLEAN THEME === */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 /* --- 1. Root Variables --- */
 :root {
     /* Color Palette */
-    --color-background: #FCFAD5;
-    --color-surface: #FFFFFF;
-    --color-primary: #B7A684;
-    --color-primary-hover: #a39475;
-    --color-text: #4d412c;
-    --color-text-secondary: #8a7a5f;
-    --color-accent: #8c7a5c;
-    --color-border: #e0dccc;
-    --color-error: #c0392b;
-    --color-white: #fff;
+    --color-background: #ffffffff;
+    --color-surface: #ffffff;
+    --color-primary: #28333eff;
+    --color-primary-hover: #495057;
+    --color-text: #212529;
+    --color-text-secondary: #6c757d;
+    --color-accent: #007bff;
+    --color-border: #dee2e6;
+    --color-error: #dc3545;
+    --color-white: #ffffffff;
 
     /* Typography & Spacing */
-    --font-family-base: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-family-base: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --space-8: 8px;
     --space-16: 16px;
     --space-24: 24px;
@@ -25,8 +25,8 @@
 
     /* Transitions & Shadows */
     --transition-fast: all 0.2s ease-in-out;
-    --shadow-sm: 0 2px 8px -1px rgba(183, 166, 132, 0.2);
-    --shadow-md: 0 8px 15px -3px rgba(183, 166, 132, 0.25);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* --- 2. Base & Global Styles --- */
@@ -54,14 +54,14 @@ main {
     text-align: center;
     margin-bottom: 60px;
     font-size: 2.5rem;
-    font-weight: 600;
-    color: var(--color-accent);
+    font-weight: 700;
+    color: var(--color-primary);
 }
 .page-title {
     font-size: 2.8rem;
     font-weight: 700;
     margin-bottom: var(--space-32);
-    color: var(--color-accent);
+    color: var(--color-primary);
     text-align: center;
     padding-top: 40px;
 }
@@ -99,15 +99,14 @@ main {
 
 /* --- 4. Header & Navigation --- */
 .header {
-    background: rgba(77, 65, 44, 0.9);
-    border-bottom: 1px solid var(--color-primary-hover);
-    backdrop-filter: blur(10px);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
 }
 .header .nav-container {
     display: flex;
@@ -122,7 +121,7 @@ main {
     text-decoration: none;
 }
 .nav-logo h1 {
-    color: var(--color-background);
+    color: var(--color-primary);
     font-size: 24px;
     margin: 0;
     font-weight: 700;
@@ -134,7 +133,7 @@ main {
     gap: var(--space-24);
 }
 .nav-link {
-    color: var(--color-background);
+    color: var(--color-text);
     text-decoration: none;
     font-weight: 500;
     padding: 8px 16px;
@@ -148,8 +147,8 @@ main {
     align-items: center;
 }
 .nav-link:hover, .nav-link.active {
-    color: var(--color-white);
-    background-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: var(--color-background);
 }
 .nav-actions {
     display: flex;
@@ -161,7 +160,7 @@ main {
     cursor: pointer;
     font-size: 22px;
     padding: 8px;
-    color: var(--color-background);
+    color: var(--color-text);
 }
 .cart-count {
     position: absolute;
@@ -211,8 +210,6 @@ main {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: var(--space-24);
 }
-/* Find and replace the existing .category-card, .category-card:hover, .category-card h3, and .category-image styles with the code below */
-
 .category-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -313,7 +310,7 @@ main {
 }
 .contact-info h3 {
     font-size: 1.8rem;
-    color: var(--color-accent);
+    color: var(--color-primary);
     margin-top: 0;
 }
 .contact-info p {
@@ -334,7 +331,6 @@ main {
 }
 .contact-map iframe {
     border-radius: var(--radius-base);
-    filter: grayscale(1) invert(0.9) contrast(0.9);
 }
 
 /* --- 7. Forms & Auth Pages --- */
@@ -357,7 +353,7 @@ main {
 .form-wrapper h1 {
     text-align: center;
     margin-bottom: var(--space-24);
-    color: var(--color-accent);
+    color: var(--color-primary);
 }
 .form-group {
     margin-bottom: var(--space-16);
@@ -478,7 +474,7 @@ main {
     flex-shrink: 0;
 }
 .sidebar-header h2 {
-    color: var(--color-accent);
+    color: var(--color-primary);
     text-align: center;
     margin-bottom: var(--space-32);
 }
@@ -541,7 +537,7 @@ main {
     vertical-align: middle;
 }
 .admin-table th {
-    background-color: #f8f6e3;
+    background-color: #f8f9fa;
 }
 .status-badge {
     padding: 4px 8px;
@@ -551,16 +547,16 @@ main {
     color: var(--color-white);
     text-transform: capitalize;
 }
-.status-badge.pending { background-color: #f39c12; }
-.status-badge.paid { background-color: #27ae60; }
-.status-badge.shipped { background-color: #2980b9; }
-.status-badge.delivered { background-color: #8e44ad; }
-.status-badge.cancelled { background-color: #c0392b; }
+.status-badge.pending { background-color: #ffc107; }
+.status-badge.paid { background-color: #28a745; }
+.status-badge.shipped { background-color: #17a2b8; }
+.status-badge.delivered { background-color: #6f42c1; }
+.status-badge.cancelled { background-color: #dc3545; }
 
 /* --- 10. Footer --- */
 .footer {
-    background: #4d412c;
-    color: #e0dccc;
+    background: #343a40;
+    color: #f8f9fa;
     padding: 50px 0;
 }
 .footer-content-simple {
@@ -570,14 +566,14 @@ main {
     padding-bottom: 30px;
 }
 .footer .footer-section .logo-text, .footer .footer-section h3 {
-    color: var(--color-background);
+    color: var(--color-white);
 }
 .footer .footer-section a {
-    color: #e0dccc;
+    color: #f8f9fa;
     text-decoration: none;
 }
 .footer .footer-section a:hover {
-    color: var(--color-white);
+    color: var(--color-accent);
 }
 .footer .socials a {
     font-size: 24px;
@@ -586,7 +582,7 @@ main {
 .footer .footer-bottom {
     text-align: center;
     margin-top: 40px;
-    border-top: 1px solid #8a7a5f;
+    border-top: 1px solid #6c757d;
     padding-top: 20px;
 }
 
@@ -823,7 +819,7 @@ main {
 }
 /* --- 16. Hero Slider Content & Search --- */
 .hero-content {
-position: absolute;
+    position: absolute;
     bottom: 15px; /* Position from the bottom */
     left: 50%;
     transform: translateX(-50%);
@@ -836,9 +832,9 @@ position: absolute;
 
 .hero-search-form {
     display: flex;
-    background: transparent; /* Fully transparent background */
+    background: rgba(255, 255, 255, 0.9);
     border-radius: var(--radius-base);
-    border: 1px solid var(--color-text); /* Dark border for better contrast */
+    border: 1px solid var(--color-border);
 }
 
 .hero-search-input {
@@ -847,8 +843,7 @@ position: absolute;
     border: none;
     border-radius: var(--radius-base) 0 0 var(--radius-base); 
     background: transparent; /* Transparent input background */
-   color: var(--color-white);
-
+    color: var(--color-text);
     font-size: 16px;
 }
 
@@ -856,7 +851,7 @@ position: absolute;
     outline: none;
 }
 .hero-search-input::placeholder {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-text-secondary);
 }
 
 .hero-search-button {

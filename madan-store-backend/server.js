@@ -31,6 +31,7 @@ v1Routes.use('/categories', require('./routes/categoryRoutes'));
 v1Routes.use('/payment', require('./routes/paymentRoutes'));
 v1Routes.use('/profile', require('./routes/profileRoutes'));
 v1Routes.use('/admin', require('./routes/adminRoutes'));
+v1Routes.use('/about', require('./routes/aboutRoutes'));
 
 app.use('/api/v1', v1Routes);
 

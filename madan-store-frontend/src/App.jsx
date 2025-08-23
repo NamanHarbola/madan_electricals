@@ -36,6 +36,7 @@ import AdminOrderDetailPage from './pages/AdminOrderDetailPage.jsx';
 import AdminBannerPage from './pages/AdminBannerPage.jsx';
 import AdminEditBannerPage from './pages/AdminEditBannerPage.jsx';
 import AdminCustomersPage from './pages/AdminCustomersPage.jsx';
+import AdminAboutPage from './pages/AdminAboutPage.jsx';
 
 function App() {
   return (
@@ -74,6 +75,7 @@ function App() {
                   <Route path="banners" element={<AdminBannerPage />} />
                   <Route path="banner/:id/edit" element={<AdminEditBannerPage />} />
                   <Route path="customers" element={<AdminCustomersPage />} />
+                  <Route path="about" element={<AdminAboutPage />} />
                 </Route>
               </Route>
             </Routes>
