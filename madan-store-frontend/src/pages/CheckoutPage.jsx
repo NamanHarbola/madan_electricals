@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import formatCurrency from '../utils/formatCurrency';

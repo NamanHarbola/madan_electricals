@@ -6,17 +6,27 @@ const {
     createOrder,
     getMyOrders,
     getOrderById,
-    updateOrderStatus // Import the new controller
+    updateOrderStatus
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// USER ROUTES
-router.route('/myorders').get(protect, getMyOrders);
-router.route('/').post(protect, createOrder);
-router.route('/:id').get(protect, getOrderById);
+// === GROUPED & REORDERED ROUTES ===
 
-// ADMIN ROUTES
-router.route('/').get(protect, admin, getOrders);
-router.route('/:id/status').put(protect, admin, updateOrderStatus); // <-- ADD THIS NEW ROUTE
+// ADMIN: Get all orders | USER: Create an order
+router.route('/')
+    .get(protect, admin, getOrders)
+    .post(protect, createOrder);
+
+// USER: Get their own orders
+router.route('/myorders')
+    .get(protect, getMyOrders);
+
+// ADMIN: Update an order's status (Specific route first)
+router.route('/:id/status')
+    .put(protect, admin, updateOrderStatus);
+
+// USER/ADMIN: Get a single order by ID (General route last)
+router.route('/:id')
+    .get(protect, getOrderById);
 
 module.exports = router;

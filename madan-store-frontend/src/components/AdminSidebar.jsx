@@ -1,9 +1,9 @@
 // src/components/AdminSidebar.jsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-// FIX: Added FaTags to the import list
-import { FaTachometerAlt, FaBoxOpen, FaShoppingCart, FaUsers, FaCog, FaSignOutAlt, FaBullhorn, FaTags } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
+// FIX: Added FaTags and FaInfoCircle to the import list
+import { FaTachometerAlt, FaBoxOpen, FaShoppingCart, FaUsers, FaCog, FaSignOutAlt, FaBullhorn, FaTags, FaInfoCircle } from 'react-icons/fa';
+import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
 
 const AdminSidebar = () => {
     const { logout } = useAuth();

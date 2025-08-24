@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext.jsx';
-import { toast } from 'react-toastify'; // --- FIX 2: Import toast
+import { useAuth } from '../hooks/useAuth.js';
+import { toast } from 'react-toastify';
 
 const SignupPage = () => {
     const [name, setName] = useState('');
@@ -16,15 +16,18 @@ const SignupPage = () => {
         e.preventDefault();
         try {
             const { data } = await axios.post(
-                'http://localhost:5000/api/v1/auth/register',
+                '/api/v1/auth/register',
                 { name, email, password }
             );
             login(data);
             navigate('/');
-        } catch (error) { // --- FIX 1: Corrected catch block syntax
-            // --- FIX 2: Replaced alert with toast for better UX
+        } catch (error) {
             toast.error(error.response?.data?.message || 'An error occurred');
         }
+    };
+
+    const handleGoogleLogin = () => {
+        window.location.href = 'http://localhost:5000/api/v1/auth/google';
     };
 
     return (
@@ -70,6 +73,16 @@ const SignupPage = () => {
                     </div>
                     <button type="submit" className="btn-full">Sign Up</button>
                 </form>
+
+                {/* --- ADDED GOOGLE BUTTON --- */}
+                <button 
+                    onClick={handleGoogleLogin} 
+                    className="btn-full" 
+                    style={{ background: '#4285F4', marginTop: '10px' }}
+                >
+                    Sign up with Google
+                </button>
+
                 <p className="auth-switch-text">
                     Already have an account? <Link to="/login">Login</Link>
                 </p>

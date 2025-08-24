@@ -29,7 +29,18 @@ const AboutPage = () => {
                 <>
                     <h1 className="page-title">{aboutContent.title}</h1>
                     <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-                        <img src={aboutContent.image} alt="About Us" style={{ width: '100%', borderRadius: 'var(--radius-base)', marginBottom: 'var(--space-32)' }} />
+                        {/* FIX: Added maxWidth to constrain the image size */}
+                        <img 
+                            src={aboutContent.image} 
+                            alt="About Us" 
+                            style={{ 
+                                width: '100%', 
+                                maxWidth: '500px', 
+                                height: 'auto',
+                                borderRadius: 'var(--radius-base)', 
+                                marginBottom: 'var(--space-32)' 
+                            }} 
+                        />
                         <p style={{ fontSize: '1.1rem', lineHeight: '1.7' }}>
                             {aboutContent.description}
                         </p>

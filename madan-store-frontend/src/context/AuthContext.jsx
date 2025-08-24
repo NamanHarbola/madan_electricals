@@ -1,7 +1,8 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 
-const AuthContext = createContext(null);
+// Export the context so the hook can use it
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [userInfo, setUserInfo] = useState(null);
@@ -15,18 +16,18 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     // Login function updates state and saves to localStorage
-    const login = (userData) => {
+    const login = useCallback((userData) => {
         localStorage.setItem('userInfo', JSON.stringify(userData));
         setUserInfo(userData);
-    };
+    }, []);
 
     // Logout function clears state and localStorage
-    const logout = () => {
+    const logout = useCallback(() => {
         localStorage.removeItem('userInfo');
         setUserInfo(null);
         // This is a safe way to redirect after logout
         window.location.href = '/login';
-    };
+    }, []);
 
     return (
         <AuthContext.Provider value={{ userInfo, login, logout }}>
@@ -35,7 +36,4 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-// Custom hook to easily use the auth context in other components
-export const useAuth = () => {
-    return useContext(AuthContext);
-};
+// We no longer export the hook from this file

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; 
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
 import formatCurrency from '../utils/formatCurrency.js';
 import { toast } from 'react-toastify';
 
@@ -13,7 +13,7 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-const fetchProfile = async () => {
+        const fetchProfile = async () => {
             try {
                 const config = {
                     headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -32,7 +32,7 @@ const fetchProfile = async () => {
                         Authorization: `Bearer ${userInfo.token}`,
                     },
                 };
-                const { data } = await axios.get('http://localhost:5000/api/orders/myorders', config);
+                const { data } = await axios.get('/api/v1/orders/myorders', config);
                 setOrders(data);
             } catch (error) {
                 toast.error(error.response?.data?.message || 'Could not fetch orders.');

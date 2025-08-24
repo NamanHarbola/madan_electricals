@@ -1,7 +1,7 @@
 // src/pages/AdminAboutPage.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
 

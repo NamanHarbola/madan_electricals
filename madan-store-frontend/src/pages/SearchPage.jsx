@@ -14,7 +14,7 @@ const SearchPage = () => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const { data } = await axios.get(`http://localhost:5000/api/products?keyword=${keyword}`);
+                const { data } = await axios.get(`/api/v1/products?keyword=${keyword}`);
                 setProducts(data);
             } catch (error) {
                 toast.error('Could not fetch search results.');
@@ -35,7 +35,8 @@ const SearchPage = () => {
             ) : products.length === 0 ? (
                 <p>No products found matching your search. Try another keyword.</p>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+                // FIX: Replaced inline style with the product-grid className for consistency
+                <div className="product-grid">
                     {products.map(product => (
                         <ProductCard key={product._id} product={product} />
                     ))}

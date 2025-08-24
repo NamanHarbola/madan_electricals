@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import formatCurrency from '../utils/formatCurrency.js';
-import { useAuth } from '../context/AuthContext.jsx'; 
+import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH 
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner.jsx'; // Import spinner

@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import formatCurrency from '../utils/formatCurrency.js';
 import { useCart } from '../context/CartContext.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 
 const ProductDetailPage = () => {
@@ -74,7 +74,12 @@ const ProductDetailPage = () => {
                                 {formatCurrency(product.mrp)}
                             </span>
                         </div>
-                        {/* ... (Other details like rating, description, etc.) ... */}
+                        
+                        {/* FIX: Added the product description */}
+                        <p style={{ lineHeight: '1.7', color: 'var(--color-text-secondary)' }}>
+                            {product.description}
+                        </p>
+                        
                         <div className="product-actions" style={{ marginTop: '24px' }}>
                             <button className="btn-full" onClick={() => addToCart(product)} disabled={product.stock === 0}>
                                 {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}

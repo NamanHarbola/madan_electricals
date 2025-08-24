@@ -23,6 +23,7 @@ import SearchPage from './pages/SearchPage.jsx';
 import CategoryPage from './pages/CategoryPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
+import AuthCallbackPage from './pages/AuthCallbackPage.jsx'; // Import the new page
 
 // Admin Pages
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
@@ -54,6 +55,7 @@ function App() {
                 <Route path="about" element={<AboutPage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="signup" element={<SignupPage />} />
+                <Route path="auth/callback" element={<AuthCallbackPage />} /> {/* Add this new route */}
                 <Route path="" element={<ProtectedRoute />}>
                   <Route path="profile" element={<ProfilePage />} />  
                   <Route path="profile/edit" element={<ProfileEditPage />} />

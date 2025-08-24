@@ -1,7 +1,7 @@
 // src/components/Navbar.jsx
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx'; 
+import { useAuth } from '../hooks/useAuth.js'; 
 import { useCart } from '../context/CartContext.jsx';
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 
@@ -11,11 +11,24 @@ const Navbar = () => {
 
     const cartItemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
+    const handleScrollLink = (e, targetId) => {
+        // If we are not on the homepage, prevent default and navigate first
+        if (window.location.pathname !== '/') {
+            return; // Let the Link component handle navigation
+        }
+        
+        // If we are on the homepage, prevent link navigation and scroll smoothly
+        e.preventDefault();
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (
         <header className="header">
             <div className="nav-container">
                 <div className="nav-logo">
-                    {/* Added a class to remove the underline */}
                     <Link to="/" className="nav-logo-link">
                         <h1>Madan Store</h1>
                     </Link>
@@ -23,14 +36,15 @@ const Navbar = () => {
 
                 <nav className="nav-menu">
                     <NavLink to="/" className="nav-link">Home</NavLink>
-                    <a href="/#categories" className="nav-link">Categories</a>
-                    <a href="/#about" className="nav-link">About Us</a>
-                    <a href="/#contact" className="nav-link">Contact Us</a>
+                    {/* FIX: These now navigate to the homepage first if on another page */}
+                    <Link to="/#categories" className="nav-link" onClick={(e) => handleScrollLink(e, 'categories')}>Categories</Link>
+                    <Link to="/#about" className="nav-link" onClick={(e) => handleScrollLink(e, 'about')}>About Us</Link>
+                    <Link to="/#contact" className="nav-link" onClick={(e) => handleScrollLink(e, 'contact')}>Contact Us</Link>
                 </nav>
 
                 <div className="nav-actions">
                     {userInfo?.isAdmin && (
-                        <NavLink to="/admin/orders" className="nav-link">Admin Panel</NavLink>
+                        <NavLink to="/admin/dashboard" className="nav-link">Admin Panel</NavLink>
                     )}
 
                     <Link to="/checkout" className="cart-icon-wrapper">

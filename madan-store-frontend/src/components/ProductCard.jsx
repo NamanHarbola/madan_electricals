@@ -16,7 +16,8 @@ const ProductCard = ({ product }) => {
     return (
         <Link to={`/product/${product._id}`} className="product-card">
             <div className="product-image">
-                <img src={product.image} alt={product.name} loading="lazy" />
+                {/* FIX: Changed product.image to product.images[0] */}
+                <img src={product.images[0]} alt={product.name} loading="lazy" />
             </div>
             <div className="product-info">
                 <h3>{product.name}</h3>
