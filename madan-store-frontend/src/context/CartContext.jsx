@@ -21,28 +21,43 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem('cartItems', JSON.stringify(cartItems));
     }, [cartItems]);
 
-    const addToCart = (product) => {
+    const addToCart = (product, qtyToAdd = 1) => {
         setCartItems(prevItems => {
             const existingItem = prevItems.find(item => item._id === product._id);
 
-            // Check against stock before adding
-            if (existingItem && existingItem.qty >= product.stock) {
-                toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
-                return prevItems; // Return items unchanged
-            }
-
             if (existingItem) {
-                // If item exists, update its quantity
+                const newQty = existingItem.qty + qtyToAdd;
+                if (newQty > product.stock) {
+                    toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
+                    return prevItems;
+                }
+                toast.success(`${qtyToAdd} more ${product.name} added to cart!`);
                 return prevItems.map(item =>
-                    item._id === product._id ? { ...item, qty: item.qty + 1 } : item
+                    item._id === product._id ? { ...item, qty: newQty } : item
                 );
             } else {
-                // If item doesn't exist, add it to the cart with quantity 1
+                 if (qtyToAdd > product.stock) {
+                    toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
+                    return prevItems;
+                }
                 toast.success(`${product.name} added to cart!`);
-                return [...prevItems, { ...product, qty: 1 }];
+                return [...prevItems, { ...product, qty: qtyToAdd }];
             }
         });
     };
+    
+    const decrementCartItem = (productId) => {
+        setCartItems(prevItems => {
+            return prevItems.map(item => {
+                if (item._id === productId) {
+                    const newQty = item.qty - 1;
+                    return newQty > 0 ? { ...item, qty: newQty } : null;
+                }
+                return item;
+            }).filter(Boolean); // Filter out null items (items with quantity 0)
+        });
+    };
+
 
     const removeFromCart = (productId) => {
         setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
@@ -77,6 +92,7 @@ export const CartProvider = ({ children }) => {
         <CartContext.Provider value={{
             cartItems,
             addToCart,
+            decrementCartItem,
             removeFromCart,
             updateCartQuantity,
             clearCart,

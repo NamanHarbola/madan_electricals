@@ -2,14 +2,14 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import formatCurrency from '../utils/formatCurrency';
 import { FaTrash } from 'react-icons/fa';
 
 const CheckoutPage = () => {
-    const { cartItems, cartSubtotal, clearCart, removeFromCart, updateCartQuantity } = useCart();
+    const { cartItems, cartSubtotal, clearCart, addToCart, decrementCartItem, removeFromCart } = useCart();
     const { userInfo } = useAuth();
     const navigate = useNavigate();
 
@@ -88,7 +88,7 @@ const CheckoutPage = () => {
                     const verifyConfig = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
                     const { data } = await axios.post('/api/v1/payment/verify', response, verifyConfig);
                     if (data.success) {
-                        placeOrder(); // Pass payment details if needed by your model
+                        placeOrder();
                     } else {
                         toast.error("Payment verification failed. Please contact support.");
                     }
@@ -129,8 +129,30 @@ const CheckoutPage = () => {
     return (
         <div className="container" style={{ paddingTop: '40px', paddingBottom: '50px' }}>
             <h1 className="page-title">Checkout</h1>
-            <form onSubmit={submitHandler} className="cart-layout">
-                <div className="checkout-details">
+            <div className="cart-layout">
+                <div className="cart-items-list">
+                    {cartItems.map(item => (
+                        <div key={item._id} className="cart-page-item">
+                            <img src={item.images[0]} alt={item.name} />
+                            <div className="cart-item-info">
+                                <Link to={`/product/${item._id}`}>{item.name}</Link>
+                                <h4>{formatCurrency(item.price)}</h4>
+                            </div>
+                            <div className="cart-item-actions">
+                                <div className="quantity-adjuster">
+                                    <button onClick={() => decrementCartItem(item._id)}>-</button>
+                                    <span>{item.qty}</span>
+                                    <button onClick={() => addToCart(item, 1)}>+</button>
+                                </div>
+                                <button onClick={() => removeFromCart(item._id)} className="btn-icon">
+                                    <FaTrash />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <form onSubmit={submitHandler} className="checkout-summary">
                     <h3>Shipping Information</h3>
                     <div className="form-group">
                         <label htmlFor="name">Full Name</label>
@@ -168,17 +190,6 @@ const CheckoutPage = () => {
                             Pay Online
                         </label>
                     </div>
-                </div>
-
-                <div className="cart-summary">
-                    <h3>Order Summary</h3>
-                     {cartItems.map(item => (
-                        <div key={item._id} className="summary-cart-item">
-                            <img src={item.images[0]} alt={item.name} />
-                            <span>{item.name} (x{item.qty})</span>
-                            <strong>{formatCurrency(item.price * item.qty)}</strong>
-                        </div>
-                    ))}
                     <div className="summary-row">
                         <span>Subtotal</span>
                         <span>{formatCurrency(cartSubtotal)}</span>
@@ -202,8 +213,8 @@ const CheckoutPage = () => {
                     <button type="submit" className="btn-full">
                         {paymentMethod === 'COD' ? 'Place Order' : 'Pay Now'}
                     </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     );
 };

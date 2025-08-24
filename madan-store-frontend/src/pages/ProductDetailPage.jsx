@@ -16,6 +16,7 @@ const ProductDetailPage = () => {
     const [error, setError] = useState(null);
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
+    const [quantity, setQuantity] = useState(1);
 
     const fetchProduct = async () => {
         try {
@@ -51,6 +52,18 @@ const ProductDetailPage = () => {
         }
     };
 
+    const handleQuantityChange = (amount) => {
+        setQuantity(prev => {
+            const newQty = prev + amount;
+            if (newQty < 1) return 1;
+            if (newQty > product.stock) {
+                toast.error(`Only ${product.stock} items in stock.`);
+                return product.stock;
+            }
+            return newQty;
+        });
+    };
+
 
     if (loading) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>Loading...</div>;
     if (error) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center', color: 'red' }}>{error}</div>;
@@ -80,8 +93,13 @@ const ProductDetailPage = () => {
                             {product.description}
                         </p>
                         
-                        <div className="product-actions" style={{ marginTop: '24px' }}>
-                            <button className="btn-full" onClick={() => addToCart(product)} disabled={product.stock === 0}>
+                        <div className="product-actions" style={{ marginTop: '24px', display: 'flex', gap: '20px' }}>
+                            <div className="quantity-adjuster">
+                                <button onClick={() => handleQuantityChange(-1)}>-</button>
+                                <span>{quantity}</span>
+                                <button onClick={() => handleQuantityChange(1)}>+</button>
+                            </div>
+                            <button className="btn-full" onClick={() => addToCart(product, quantity)} disabled={product.stock === 0} style={{ marginTop: 0 }}>
                                 {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                             </button>
                         </div>
