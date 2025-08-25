@@ -1,7 +1,7 @@
 // src/components/Categories.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import API from '../api'; // <-- 1. Import the API instance
+import API from '../api'; // Use the central API
 
 const Categories = () => {
     const [categories, setCategories] = useState([]);
@@ -9,10 +9,12 @@ const Categories = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                // 2. Use the central API instance
                 const { data } = await API.get('/api/v1/categories');
+                // THE FIX: Ensure data is an array before setting state
                 if (Array.isArray(data)) {
                     setCategories(data);
+                } else {
+                    console.error("API did not return an array for categories:", data);
                 }
             } catch (error) {
                 console.error("Failed to fetch categories", error);
@@ -20,10 +22,6 @@ const Categories = () => {
         };
         fetchCategories();
     }, []);
-
-    if (!Array.isArray(categories)) {
-        return null;
-    }
 
     return (
         <section id="categories" className="categories-section">

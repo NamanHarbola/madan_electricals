@@ -1,9 +1,10 @@
+// src/pages/AdminProductsPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // Use the central API
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import formatCurrency from '../utils/formatCurrency.js';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import { useAuth } from '../hooks/useAuth.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const AdminProductsPage = () => {
@@ -15,9 +16,13 @@ const AdminProductsPage = () => {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            // FIX: Using relative path with API version
-            const { data } = await axios.get('/api/v1/products');
-            setProducts(data);
+            const { data } = await API.get('/api/v1/products');
+            // THE FIX: Ensure data is an array before setting state
+            if (Array.isArray(data)) {
+                setProducts(data);
+            } else {
+                console.error("API did not return an array for products:", data);
+            }
         } catch (err) {
             setError('Could not fetch products. Please try again later.');
             toast.error('Could not fetch products.');
@@ -30,6 +35,7 @@ const AdminProductsPage = () => {
         fetchProducts();
     }, []);
 
+    // ... (rest of the component is the same)
     const deleteHandler = async (id) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
@@ -38,8 +44,7 @@ const AdminProductsPage = () => {
                         Authorization: `Bearer ${userInfo.token}`,
                     },
                 };
-                // FIX: Using relative path with API version
-                await axios.delete(`/api/v1/products/${id}`, config);
+                await API.delete(`/api/v1/products/${id}`, config);
                 setProducts(products.filter((p) => p._id !== id));
                 toast.success('Product deleted successfully');
             } catch (error) {

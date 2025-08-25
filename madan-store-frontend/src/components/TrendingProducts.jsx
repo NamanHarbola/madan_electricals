@@ -1,6 +1,6 @@
 // src/components/TrendingProducts.jsx
 import React, { useState, useEffect } from 'react';
-import API from '../api'; // Corrected import
+import API from '../api';
 import ProductCard from './ProductCard';
 import { toast } from 'react-toastify';
 import LoadingSpinner from './LoadingSpinner';
@@ -12,8 +12,14 @@ const TrendingProducts = () => {
     useEffect(() => {
         const fetchTrendingProducts = async () => {
             try {
-                const { data } = await API.get('/api/v1/products'); // Use API instance
-                setProducts(data.filter(p => p.trending));
+                const { data } = await API.get('/api/v1/products');
+                // THE FIX: Check if the API response is an array before setting state
+                if (Array.isArray(data)) {
+                    setProducts(data.filter(p => p.trending));
+                } else {
+                    // Log an error if the data is not an array
+                    console.error("API did not return an array for products:", data);
+                }
             } catch (error) {
                 toast.error('Could not load trending products.');
             } finally {
@@ -26,7 +32,8 @@ const TrendingProducts = () => {
     if (loading) {
         return <LoadingSpinner />;
     }
-
+    
+    // No need to check for length here, .map on an empty array works fine
     if (products.length === 0) {
         return null;
     }
