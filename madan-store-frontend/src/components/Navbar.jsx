@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useCart } from '../context/CartContext.jsx';
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa';
 
-const Navbar = () => {
+const Navbar = ({ scrolled }) => {
     const { userInfo, logout } = useAuth();
     const { cartItems } = useCart();
 
@@ -24,10 +24,9 @@ const Navbar = () => {
     };
 
     return (
-        <header className="header">
+        <header className={`header ${scrolled ? 'scrolled' : ''}`}>
             <div className="nav-container">
                 <div className="nav-logo">
-                    {/* FIX: Wrapped the h1 in a Link component */}
                     <Link to="/" className="nav-logo-link">
                         <h1>Madan Store</h1>
                     </Link>

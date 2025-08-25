@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const addressSchema = new mongoose.Schema({
-    address: { type: String, required: true }, // Changed 'street' to 'address'
+    address: { type: String, required: true }, // FIX: Changed 'street' to 'address'
     city: { type: String, required: true },
-    state: { type: String }, // Made 'state' optional
+    state: { type: String }, // Made 'state' optional for now
     postalCode: { type: String, required: true },
     country: { type: String, required: true, default: 'India' },
 });

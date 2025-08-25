@@ -4,12 +4,12 @@
 /* --- 1. Root Variables --- */
 :root {
     /* New Color Palette */
-    --color-primary: #08747cff; /* A deep, professional navy */
-    --color-primary-dark: #233140;
+    --color-primary: #08747cff; /* A deep, professional teal */
+    --color-primary-dark: #065a60;
     --color-secondary: #3498db; /* A bright, clean blue for accents */
     --color-secondary-dark: #2980b9;
-    --color-accent: #3ed5cdff; /* A warm orange for call-to-actions */
-    --color-accent-dark: #d35400;
+    --color-accent: #3ed5cdff; /* A vibrant cyan for call-to-actions */
+    --color-accent-dark: #2cbba9;
     --color-background: #ecf0f1; /* A light, clean grey */
     --color-surface: #ffffff;
     --color-text: #34495e;
@@ -78,7 +78,7 @@ main {
     font-size: 1rem;
     font-weight: 600;
     color: var(--color-white);
-    background: var(--color-accent);
+    background: linear-gradient(45deg, var(--color-accent), var(--color-secondary));
     border: none;
     border-radius: var(--radius-sm);
     cursor: pointer;
@@ -86,12 +86,11 @@ main {
     margin-top: var(--space-24);
     text-align: center;
     text-decoration: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(62, 213, 205, 0.3);
 }
 .btn-full:hover {
-    background: var(--color-accent-dark);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(62, 213, 205, 0.4);
 }
 .btn-icon {
     background: none;
@@ -170,13 +169,13 @@ main {
     transition: width 0.3s;
 }
 .nav-link:hover {
-    color: var(--color-white);
+    color: var(--color-accent);
 }
 .nav-link:hover:after, .nav-link.active:after {
     width: 100%;
 }
 .nav-link.active {
-    color: var(--color-white);
+    color: var(--color-accent);
 }
 .nav-actions {
     display: flex;
@@ -890,8 +889,14 @@ main {
     .nav-menu {
         display: none;
     }
-    .contact-grid, .profile-layout, .product-detail-content, .cart-layout, .order-details-layout {
+    .contact-grid, .profile-layout, .product-detail-content, .cart-layout, .order-details-layout, .about-grid {
         grid-template-columns: 1fr;
+    }
+    .about-grid {
+        text-align: center;
+    }
+    .about-content .section-heading {
+        text-align: center;
     }
 }
 @media (max-width: 768px) {

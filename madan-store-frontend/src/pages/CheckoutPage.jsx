@@ -14,7 +14,7 @@ const CheckoutPage = () => {
     const navigate = useNavigate();
 
     const [paymentMethod, setPaymentMethod] = useState('COD');
-    // FIX: Pre-fill shipping info from user profile if it exists
+    // FIX: Initialize state correctly
     const [shippingInfo, setShippingInfo] = useState({
         name: userInfo?.name || '',
         landmark: userInfo?.shippingAddress?.landmark || '',
@@ -24,19 +24,20 @@ const CheckoutPage = () => {
         country: 'India',
     });
 
+    // FIX: This effect now safely updates the form if userInfo loads after the component mounts
     useEffect(() => {
-        // This effect runs if the userInfo is loaded after the component mounts
-        if (userInfo?.shippingAddress) {
-            setShippingInfo({
-                name: userInfo.name,
-                landmark: userInfo.shippingAddress.landmark || '',
-                address: userInfo.shippingAddress.address || '',
-                city: userInfo.shippingAddress.city || '',
-                postalCode: userInfo.shippingAddress.postalCode || '',
-                country: 'India',
-            });
+        if (userInfo) {
+            setShippingInfo(prevInfo => ({
+                ...prevInfo,
+                name: userInfo.name || prevInfo.name,
+                landmark: userInfo.shippingAddress?.landmark || prevInfo.landmark,
+                address: userInfo.shippingAddress?.address || prevInfo.address,
+                city: userInfo.shippingAddress?.city || prevInfo.city,
+                postalCode: userInfo.shippingAddress?.postalCode || prevInfo.postalCode,
+            }));
         }
     }, [userInfo]);
+
 
     const { finalTotal, handlingCharge, taxAmount } = useMemo(() => {
         let handlingCharge = 0;
