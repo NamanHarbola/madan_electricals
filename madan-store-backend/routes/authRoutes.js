@@ -44,7 +44,7 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // @desc    Google auth callback
 // @route   GET /api/v1/auth/google/callback
 router.get('/google/callback', passport.authenticate('google', { 
-    failureRedirect: 'http://localhost:5173/login', // Redirect on failure
+    failureRedirect: 'https://madan-electricalsfrontend.vercel.app/', // Redirect on failure
     session: false // We are using JWT, not sessions
 }), (req, res) => {
     const token = generateToken(req.user._id);
@@ -56,7 +56,8 @@ router.get('/google/callback', passport.authenticate('google', {
         token: token,
     };
     // Redirect to a frontend page with the user data/token
-    res.redirect(`http://localhost:5173/auth/callback?user=${encodeURIComponent(JSON.stringify(user))}`);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/auth/callback?user=${encodeURIComponent(JSON.stringify(user))}`);
 });
 
 
