@@ -22,28 +22,28 @@ export const CartProvider = ({ children }) => {
     }, [cartItems]);
 
     const addToCart = (product, qtyToAdd = 1) => {
-        setCartItems(prevItems => {
-            const existingItem = prevItems.find(item => item._id === product._id);
+        const existingItem = cartItems.find(item => item._id === product._id);
 
-            if (existingItem) {
-                const newQty = existingItem.qty + qtyToAdd;
-                if (newQty > product.stock) {
-                    toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
-                    return prevItems;
-                }
-                toast.success(`${qtyToAdd} more ${product.name} added to cart!`);
-                return prevItems.map(item =>
-                    item._id === product._id ? { ...item, qty: newQty } : item
-                );
-            } else {
-                 if (qtyToAdd > product.stock) {
-                    toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
-                    return prevItems;
-                }
-                toast.success(`${product.name} added to cart!`);
-                return [...prevItems, { ...product, qty: qtyToAdd }];
+        if (existingItem) {
+            const newQty = existingItem.qty + qtyToAdd;
+            if (newQty > product.stock) {
+                toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
+                return;
             }
-        });
+            setCartItems(prevItems =>
+                prevItems.map(item =>
+                    item._id === product._id ? { ...item, qty: newQty } : item
+                )
+            );
+            toast.success(`${qtyToAdd} more ${product.name} added to cart!`);
+        } else {
+            if (qtyToAdd > product.stock) {
+                toast.error(`Sorry, only ${product.stock} units of ${product.name} are available.`);
+                return;
+            }
+            setCartItems(prevItems => [...prevItems, { ...product, qty: qtyToAdd }]);
+            toast.success(`${product.name} added to cart!`);
+        }
     };
     
     const decrementCartItem = (productId) => {

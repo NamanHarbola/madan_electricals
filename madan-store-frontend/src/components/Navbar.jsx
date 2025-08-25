@@ -25,6 +25,9 @@ const Navbar = ({ scrolled }) => {
 
     return (
         <header className={`header ${scrolled ? 'scrolled' : ''}`}>
+            <div className="discount-banner">
+                <p>Special discount on all products! Use code: MADAN50</p>
+            </div>
             <div className="nav-container">
                 <div className="nav-logo">
                     <Link to="/" className="nav-logo-link">
