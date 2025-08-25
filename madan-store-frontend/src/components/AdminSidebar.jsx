@@ -1,9 +1,8 @@
 // src/components/AdminSidebar.jsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-// FIX: Added FaTags and FaInfoCircle to the import list
 import { FaTachometerAlt, FaBoxOpen, FaShoppingCart, FaUsers, FaCog, FaSignOutAlt, FaBullhorn, FaTags, FaInfoCircle } from 'react-icons/fa';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import { useAuth } from '../hooks/useAuth.js';
 
 const AdminSidebar = () => {
     const { logout } = useAuth();
@@ -36,9 +35,7 @@ const AdminSidebar = () => {
                 </NavLink>
             </nav>
             <div className="sidebar-footer">
-                <NavLink to="/admin/settings" className="sidebar-link">
-                    <FaCog /><span>Settings</span>
-                </NavLink>
+                {/* FIX: Removed the non-functional Settings link */}
                 <button onClick={logout} className="sidebar-link logout-btn">
                     <FaSignOutAlt /><span>Log out</span>
                 </button>

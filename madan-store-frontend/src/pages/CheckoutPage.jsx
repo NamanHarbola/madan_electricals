@@ -1,5 +1,5 @@
 // src/pages/CheckoutPage.jsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../hooks/useAuth';
@@ -14,14 +14,29 @@ const CheckoutPage = () => {
     const navigate = useNavigate();
 
     const [paymentMethod, setPaymentMethod] = useState('COD');
+    // FIX: Pre-fill shipping info from user profile if it exists
     const [shippingInfo, setShippingInfo] = useState({
         name: userInfo?.name || '',
-        landmark: '',
-        address: '',
-        city: '',
-        postalCode: '',
+        landmark: userInfo?.shippingAddress?.landmark || '',
+        address: userInfo?.shippingAddress?.address || '',
+        city: userInfo?.shippingAddress?.city || '',
+        postalCode: userInfo?.shippingAddress?.postalCode || '',
         country: 'India',
     });
+
+    useEffect(() => {
+        // This effect runs if the userInfo is loaded after the component mounts
+        if (userInfo?.shippingAddress) {
+            setShippingInfo({
+                name: userInfo.name,
+                landmark: userInfo.shippingAddress.landmark || '',
+                address: userInfo.shippingAddress.address || '',
+                city: userInfo.shippingAddress.city || '',
+                postalCode: userInfo.shippingAddress.postalCode || '',
+                country: 'India',
+            });
+        }
+    }, [userInfo]);
 
     const { finalTotal, handlingCharge, taxAmount } = useMemo(() => {
         let handlingCharge = 0;
@@ -160,19 +175,19 @@ const CheckoutPage = () => {
                     </div>
                     <div className="form-group">
                         <label htmlFor="address">Address</label>
-                        <input type="text" id="address" name="address" className="form-control" onChange={handleChange} required />
+                        <input type="text" id="address" name="address" className="form-control" value={shippingInfo.address} onChange={handleChange} required />
                     </div>
                     <div className="form-group">
                         <label htmlFor="landmark">Landmark (Optional)</label>
-                        <input type="text" id="landmark" name="landmark" className="form-control" onChange={handleChange} />
+                        <input type="text" id="landmark" name="landmark" className="form-control" value={shippingInfo.landmark} onChange={handleChange} />
                     </div>
                      <div className="form-group">
                         <label htmlFor="city">City</label>
-                        <input type="text" id="city" name="city" className="form-control" onChange={handleChange} required />
+                        <input type="text" id="city" name="city" className="form-control" value={shippingInfo.city} onChange={handleChange} required />
                     </div>
                     <div className="form-group">
                         <label htmlFor="postalCode">Postal Code</label>
-                        <input type="text" id="postalCode" name="postalCode" className="form-control" onChange={handleChange} required />
+                        <input type="text" id="postalCode" name="postalCode" className="form-control" value={shippingInfo.postalCode} onChange={handleChange} required />
                     </div>
                     <div className="form-group">
                         <label htmlFor="country">Country</label>

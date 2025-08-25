@@ -14,17 +14,19 @@ const Footer = () => {
                             Your trusted partner for premium electronics and professional-grade hardware.
                         </p>
                         <div className="socials">
-                            <a href="#"><FaFacebook /></a>
-                            <a href="#"><FaTwitter /></a>
-                            <a href="#"><FaInstagram /></a>
-                            <a href="#"><FaLinkedin /></a>
+                            {/* FIX: Replaced '#' with actual links (placeholders for now) */}
+                            <a href="https://www.facebook.com/profile.php?id=61577602794402" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
+                            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"><FaTwitter /></a>
+                            <a href="https://www.instagram.com/madan.electricals/?hl=en" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
+                            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer"><FaLinkedin /></a>
                         </div>
                     </div>
                     <div className="footer-section links">
                         <h3>Quick Links</h3>
                         <ul>
+                            {/* FIX: Changed to functional Links */}
                             <li><Link to="/">Home</Link></li>
-                            <li><Link to="/categories">Categories</Link></li>
+                            <li><Link to="/#categories">Categories</Link></li>
                             <li><Link to="/profile">My Account</Link></li>
                             <li><Link to="/#contact">Contact</Link></li>
                         </ul>

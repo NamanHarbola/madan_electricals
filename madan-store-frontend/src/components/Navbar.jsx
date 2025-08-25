@@ -12,12 +12,10 @@ const Navbar = () => {
     const cartItemCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
     const handleScrollLink = (e, targetId) => {
-        // If we are not on the homepage, prevent default and navigate first
         if (window.location.pathname !== '/') {
-            return; // Let the Link component handle navigation
+            return;
         }
         
-        // If we are on the homepage, prevent link navigation and scroll smoothly
         e.preventDefault();
         const targetElement = document.getElementById(targetId);
         if (targetElement) {
@@ -29,6 +27,7 @@ const Navbar = () => {
         <header className="header">
             <div className="nav-container">
                 <div className="nav-logo">
+                    {/* FIX: Wrapped the h1 in a Link component */}
                     <Link to="/" className="nav-logo-link">
                         <h1>Madan Store</h1>
                     </Link>
@@ -36,7 +35,6 @@ const Navbar = () => {
 
                 <nav className="nav-menu">
                     <NavLink to="/" className="nav-link">Home</NavLink>
-                    {/* FIX: These now navigate to the homepage first if on another page */}
                     <Link to="/#categories" className="nav-link" onClick={(e) => handleScrollLink(e, 'categories')}>Categories</Link>
                     <Link to="/#about" className="nav-link" onClick={(e) => handleScrollLink(e, 'about')}>About Us</Link>
                     <Link to="/#contact" className="nav-link" onClick={(e) => handleScrollLink(e, 'contact')}>Contact Us</Link>

@@ -17,7 +17,6 @@ const HeroSlider = () => {
     useEffect(() => {
         const fetchBanners = async () => {
             try {
-                // FIX: Using the correct, versioned API endpoint
                 const { data } = await axios.get('/api/v1/banners');
                 if (Array.isArray(data)) {
                     setBanners(data);
@@ -60,6 +59,14 @@ const HeroSlider = () => {
     const goToSlide = (index) => {
         setCurrentIndex(index);
     };
+    
+    // FIX: Function to handle banner click
+    const handleBannerClick = (link) => {
+        if (link) {
+            navigate(link);
+        }
+    };
+
 
     if (loading) {
         return (
@@ -70,7 +77,6 @@ const HeroSlider = () => {
     }
 
     if (banners.length === 0) {
-        // A more prominent fallback for when no banners are in the database
         return (
              <div className="hero-slider">
                 <div className="slide active" style={{backgroundImage: `url(https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&q=80)`}}>
@@ -89,11 +95,15 @@ const HeroSlider = () => {
                 <div
                     key={banner._id}
                     className={`slide ${index === currentIndex ? 'active' : ''}`}
-                    style={{ backgroundImage: `url(${banner.image})` }}
+                    style={{ 
+                        backgroundImage: `url(${banner.image})`,
+                        cursor: 'pointer' // Add pointer cursor
+                    }}
+                    onClick={() => handleBannerClick(banner.link)} // Add onClick handler
                 />
             ))}
 
-<div className="hero-content">
+            <div className="hero-content">
                 <form onSubmit={submitHandler} className="hero-search-form">
                     <input
                         type="text"

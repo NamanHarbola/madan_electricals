@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const User = require('../models/User'); // Import the User model
 
 // ... (getOrders, getOrderById, getMyOrders functions remain the same) ...
 const getOrders = async (req, res) => {
@@ -69,6 +70,14 @@ const createOrder = async (req, res) => {
         });
 
         const createdOrder = await order.save();
+        
+        // FIX: Auto-save shipping address to user profile
+        const user = await User.findById(req.user._id);
+        if (user) {
+            user.shippingAddress = shippingInfo;
+            await user.save();
+        }
+
         res.status(201).json(createdOrder);
 
     } catch (error) {
