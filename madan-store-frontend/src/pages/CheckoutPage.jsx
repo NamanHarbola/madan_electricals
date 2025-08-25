@@ -1,5 +1,5 @@
 // src/pages/CheckoutPage.jsx
-import React, 'useState', useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react'; // Ensure this line is clean with no typos
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../hooks/useAuth';
@@ -66,7 +66,7 @@ const CheckoutPage = () => {
                 ...paymentDetails
             };
 
-            // 2. Use the API instance (no manual config needed for auth)
+            // 2. Use the API instance
             await API.post('/api/v1/orders', order);
             toast.success('Order placed successfully!');
             clearCart();
@@ -161,6 +161,7 @@ const CheckoutPage = () => {
                 </div>
 
                 <form onSubmit={submitHandler} className="checkout-summary">
+                    {/* Form JSX remains the same */}
                     <h3>Shipping Information</h3>
                     <div className="form-group">
                         <label htmlFor="name">Full Name</label>
