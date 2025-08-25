@@ -59,7 +59,6 @@ const CheckoutPage = () => {
         const { name, value } = e.target;
         setShippingInfo(prevState => ({ ...prevState, [name]: value }));
     };
-
     const placeOrder = async (paymentDetails = {}) => {
         try {
             const order = {
@@ -85,7 +84,6 @@ const CheckoutPage = () => {
              toast.error(error.response?.data?.message || 'Failed to place order.');
         }
     };
-
     const handlePayment = async () => {
         const config = {
             headers: { Authorization: `Bearer ${userInfo.token}` },
@@ -132,7 +130,6 @@ const CheckoutPage = () => {
             handlePayment();
         }
     };
-
     if (cartItems.length === 0) {
         return (
             <div className="container" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '50px' }}>
