@@ -1,6 +1,6 @@
 // src/components/HeroSlider.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the API instance
 import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import LoadingSpinner from './LoadingSpinner';
@@ -17,7 +17,8 @@ const HeroSlider = () => {
     useEffect(() => {
         const fetchBanners = async () => {
             try {
-                const { data } = await axios.get('/api/v1/banners');
+                // 2. Use the central API instance
+                const { data } = await API.get('/api/v1/banners');
                 if (Array.isArray(data)) {
                     setBanners(data);
                 }
@@ -30,6 +31,7 @@ const HeroSlider = () => {
         fetchBanners();
     }, []);
 
+    // ... (rest of the component code is the same)
     useEffect(() => {
         if (banners.length > 1 && !isHovering) {
             const timer = setTimeout(() => {
@@ -60,7 +62,6 @@ const HeroSlider = () => {
         setCurrentIndex(index);
     };
     
-    // FIX: Function to handle banner click
     const handleBannerClick = (link) => {
         if (link) {
             navigate(link);
@@ -97,9 +98,9 @@ const HeroSlider = () => {
                     className={`slide ${index === currentIndex ? 'active' : ''}`}
                     style={{ 
                         backgroundImage: `url(${banner.image})`,
-                        cursor: 'pointer' // Add pointer cursor
+                        cursor: 'pointer'
                     }}
-                    onClick={() => handleBannerClick(banner.link)} // Add onClick handler
+                    onClick={() => handleBannerClick(banner.link)}
                 />
             ))}
 

@@ -1,6 +1,6 @@
 // src/components/AboutSection.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the API instance
 import { Link } from 'react-router-dom';
 
 const AboutSection = () => {
@@ -9,7 +9,8 @@ const AboutSection = () => {
     useEffect(() => {
         const fetchAboutContent = async () => {
             try {
-                const { data } = await axios.get('/api/v1/about');
+                // 2. Use the central API instance
+                const { data } = await API.get('/api/v1/about');
                 setContent(data);
             } catch (error) {
                 console.error("Could not fetch about content for homepage", error);
@@ -19,7 +20,7 @@ const AboutSection = () => {
     }, []);
 
     if (!content) {
-        return null; // Don't render the section if there's no content
+        return null;
     }
 
     return (

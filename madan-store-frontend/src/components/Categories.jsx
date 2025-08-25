@@ -1,7 +1,7 @@
 // src/components/Categories.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the API instance
 
 const Categories = () => {
     const [categories, setCategories] = useState([]);
@@ -9,9 +9,8 @@ const Categories = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                // Using relative path, which will be handled by the Vite proxy
-                const { data } = await axios.get('/api/v1/categories');
-                // Ensure data is an array before setting state
+                // 2. Use the central API instance
+                const { data } = await API.get('/api/v1/categories');
                 if (Array.isArray(data)) {
                     setCategories(data);
                 }
@@ -22,9 +21,8 @@ const Categories = () => {
         fetchCategories();
     }, []);
 
-    // Add a check to ensure categories is an array before mapping
     if (!Array.isArray(categories)) {
-        return null; // or a loading/error state
+        return null;
     }
 
     return (
