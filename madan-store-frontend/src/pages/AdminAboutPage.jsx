@@ -1,7 +1,7 @@
 // src/pages/AdminAboutPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import API from '../api'; // <-- 1. Import the central API instance
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -16,7 +16,8 @@ const AdminAboutPage = () => {
     useEffect(() => {
         const fetchAboutContent = async () => {
             try {
-                const { data } = await axios.get('/api/v1/about');
+                // 2. Use the API instance
+                const { data } = await API.get('/api/v1/about');
                 setTitle(data.title);
                 setDescription(data.description);
                 setImage(data.image);
@@ -36,13 +37,10 @@ const AdminAboutPage = () => {
         formData.append('image', file);
         setUploading(true);
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            const { data } = await axios.post('/api/v1/upload', formData, config);
+            // 3. Use the API instance for the upload
+            const { data } = await API.post('/api/v1/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             setImage(data.imageUrl);
             toast.success('Image uploaded successfully!');
         } catch (error) {
@@ -55,13 +53,8 @@ const AdminAboutPage = () => {
     const submitHandler = async (e) => {
         e.preventDefault();
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            await axios.put('/api/v1/about', { title, description, image }, config);
+            // 4. Use the API instance to update the content
+            await API.put('/api/v1/about', { title, description, image });
             toast.success('About page updated successfully!');
         } catch (error) {
             toast.error('Failed to update about page.');

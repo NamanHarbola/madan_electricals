@@ -1,9 +1,9 @@
 // src/pages/AdminEditCategoryPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import { toast } from 'react-toastify';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import { useAuth } from '../hooks/useAuth.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const AdminEditCategoryPage = () => {
@@ -18,8 +18,8 @@ const AdminEditCategoryPage = () => {
     useEffect(() => {
         const fetchCategory = async () => {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                const { data } = await axios.get(`/api/v1/categories/${id}`, config);
+                // 2. Use the API instance (no manual config needed)
+                const { data } = await API.get(`/api/v1/categories/${id}`);
                 setName(data.name);
                 setImage(data.image);
             } catch (error) {
@@ -28,8 +28,10 @@ const AdminEditCategoryPage = () => {
                 setLoading(false);
             }
         };
-        fetchCategory();
-    }, [id, userInfo.token]);
+        if (userInfo) {
+            fetchCategory();
+        }
+    }, [id, userInfo]);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files[0];
@@ -38,8 +40,10 @@ const AdminEditCategoryPage = () => {
         formData.append('image', file);
         setUploading(true);
         try {
-            const config = { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${userInfo.token}` } };
-            const { data } = await axios.post('/api/v1/upload', formData, config);
+            // 3. Use the API instance
+            const { data } = await API.post('/api/v1/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             setImage(data.imageUrl);
             toast.success('Image uploaded successfully!');
         } catch (error) {
@@ -52,8 +56,8 @@ const AdminEditCategoryPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
-            await axios.put(`/api/v1/categories/${id}`, { name, image }, config);
+            // 4. Use the API instance
+            await API.put(`/api/v1/categories/${id}`, { name, image });
             toast.success('Category updated successfully!');
             navigate('/admin/categories');
         } catch (error) {

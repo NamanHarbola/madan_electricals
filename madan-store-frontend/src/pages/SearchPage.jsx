@@ -1,7 +1,7 @@
 // src/pages/SearchPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // 1. Import API
 import ProductCard from '../components/ProductCard';
 import { toast } from 'react-toastify';
 
@@ -14,8 +14,11 @@ const SearchPage = () => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const { data } = await axios.get(`/api/v1/products?keyword=${keyword}`);
-                setProducts(data);
+                // 2. Use API instance
+                const { data } = await API.get(`/api/v1/products?keyword=${keyword}`);
+                if (Array.isArray(data)) {
+                    setProducts(data);
+                }
             } catch (error) {
                 toast.error('Could not fetch search results.');
             } finally {
@@ -24,7 +27,7 @@ const SearchPage = () => {
         };
 
         fetchProducts();
-    }, [keyword]); // Re-fetch whenever the keyword changes
+    }, [keyword]);
 
     return (
         <div className="container" style={{ paddingTop: '100px', paddingBottom: '50px' }}>
@@ -35,7 +38,6 @@ const SearchPage = () => {
             ) : products.length === 0 ? (
                 <p>No products found matching your search. Try another keyword.</p>
             ) : (
-                // FIX: Replaced inline style with the product-grid className for consistency
                 <div className="product-grid">
                     {products.map(product => (
                         <ProductCard key={product._id} product={product} />

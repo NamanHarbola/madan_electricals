@@ -1,7 +1,7 @@
 // src/pages/AdminCustomersPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import API from '../api'; // <-- 1. Import the central API instance
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -13,17 +13,25 @@ const AdminCustomersPage = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                const { data } = await axios.get('/api/v1/users', config);
-                setUsers(data);
+                // 2. Use the API instance (no manual config needed)
+                const { data } = await API.get('/api/v1/users');
+                // 3. Add a check to ensure data is an array
+                if (Array.isArray(data)) {
+                    setUsers(data);
+                } else {
+                    console.error("API did not return an array for users:", data);
+                }
             } catch (error) {
                 toast.error('Could not fetch users.');
             } finally {
                 setLoading(false);
             }
         };
-        fetchUsers();
-    }, [userInfo.token]);
+        
+        if (userInfo) {
+            fetchUsers();
+        }
+    }, [userInfo]);
 
     if (loading) return <LoadingSpinner />;
 

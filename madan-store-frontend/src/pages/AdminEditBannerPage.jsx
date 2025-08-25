@@ -1,9 +1,9 @@
 // src/pages/AdminEditBannerPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import { toast } from 'react-toastify';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import { useAuth } from '../hooks/useAuth.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const AdminEditBannerPage = () => {
@@ -22,8 +22,8 @@ const AdminEditBannerPage = () => {
     useEffect(() => {
         const fetchBanner = async () => {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                const { data } = await axios.get(`/api/v1/banners/${id}`, config);
+                // 2. Use the API instance
+                const { data } = await API.get(`/api/v1/banners/${id}`);
                 setBanner(data);
             } catch (error) {
                 toast.error('Could not fetch banner details.');
@@ -31,8 +31,10 @@ const AdminEditBannerPage = () => {
                 setLoading(false);
             }
         };
-        fetchBanner();
-    }, [id, userInfo.token]);
+        if (userInfo) {
+            fetchBanner();
+        }
+    }, [id, userInfo]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -49,8 +51,10 @@ const AdminEditBannerPage = () => {
         formData.append('image', file);
         setUploading(true);
         try {
-            const config = { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${userInfo.token}` } };
-            const { data } = await axios.post('/api/v1/upload', formData, config);
+            // 3. Use the API instance
+            const { data } = await API.post('/api/v1/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             setBanner(prevState => ({ ...prevState, image: data.imageUrl }));
             toast.success('Image uploaded successfully!');
         } catch (error) {
@@ -63,8 +67,8 @@ const AdminEditBannerPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
-            await axios.put(`/api/v1/banners/${id}`, banner, config);
+            // 4. Use the API instance
+            await API.put(`/api/v1/banners/${id}`, banner);
             toast.success('Banner updated successfully!');
             navigate('/admin/banners');
         } catch (error) {

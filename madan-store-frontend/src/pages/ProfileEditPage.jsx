@@ -1,8 +1,8 @@
 // src/pages/ProfileEditPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import API from '../api'; // <-- 1. Import the central API instance
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
@@ -20,8 +20,8 @@ const ProfileEditPage = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                const { data } = await axios.get('/api/v1/profile', config);
+                // 2. Use the API instance (no manual config needed)
+                const { data } = await API.get('/api/v1/profile');
                 setName(data.name);
                 setEmail(data.email);
                 if (data.shippingAddress) {
@@ -35,20 +35,21 @@ const ProfileEditPage = () => {
                 setLoading(false);
             }
         };
-        fetchProfile();
-    }, [userInfo.token]);
+        if (userInfo) {
+            fetchProfile();
+        }
+    }, [userInfo]);
 
     const submitHandler = async (e) => {
         e.preventDefault();
         try {
-            const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
-            const { data } = await axios.put('/api/v1/profile', {
+            // 3. Use the API instance
+            const { data } = await API.put('/api/v1/profile', {
                 name,
                 email,
                 shippingAddress: { address, city, postalCode, country: 'India' }
-            }, config);
+            });
             
-            // Update the user info in local storage
             login({ ...userInfo, name: data.name });
 
             toast.success('Profile updated successfully!');

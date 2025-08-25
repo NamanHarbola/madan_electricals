@@ -1,8 +1,8 @@
 // src/components/AddProductForm.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // <-- 1. IMPORT YOUR CENTRAL API INSTANCE
 import { toast } from 'react-toastify';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import { useAuth } from '../hooks/useAuth.js';
 import { useNavigate } from 'react-router-dom';
 
 const AddProductForm = () => {
@@ -24,8 +24,9 @@ const AddProductForm = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const { data } = await axios.get('/api/v1/categories');
-                if (data && data.length > 0) {
+                // 2. USE THE API INSTANCE
+                const { data } = await API.get('/api/v1/categories');
+                if (Array.isArray(data) && data.length > 0) {
                     setCategories(data);
                     setFormData(prevState => ({ ...prevState, category: data[0].name }));
                 }
@@ -61,31 +62,23 @@ const AddProductForm = () => {
 
         try {
             // Step 1: Upload the image and get the URL
-            const uploadConfig = {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            const { data: uploadData } = await axios.post('/api/v1/upload', fileUploadData, uploadConfig);
+            // 3. USE THE API INSTANCE (No need for config, it's handled automatically)
+            const { data: uploadData } = await API.post('/api/v1/upload', fileUploadData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
 
-            // Step 2: Create the product data payload, including the new image URL
+            // Step 2: Create the product data payload
             const newProduct = {
                 ...formData,
-                images: [uploadData.imageUrl], // Ensure this is an array as per the model
+                images: [uploadData.imageUrl],
             };
 
-            // Step 3: Submit the product data as JSON
-            const productConfig = {
-                headers: {
-                    'Content-Type': 'application/json', // Important: This must be application/json
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            await axios.post('/api/v1/products', newProduct, productConfig);
+            // Step 3: Submit the product data
+            // 4. USE THE API INSTANCE
+            await API.post('/api/v1/products', newProduct);
             
             toast.success(`Successfully added product: ${newProduct.name}`);
-            navigate('/admin/products'); // Redirect to the product list on success
+            navigate('/admin/products');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to add product.');
         } finally {
@@ -96,6 +89,7 @@ const AddProductForm = () => {
     return (
         <div className="form-wrapper">
             <form onSubmit={handleSubmit}>
+                {/* JSX for the form remains the same */}
                 <div className="form-group">
                     <label htmlFor="name">Product Name</label>
                     <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} className="form-control" required />

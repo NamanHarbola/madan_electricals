@@ -1,26 +1,24 @@
 // src/pages/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import formatCurrency from '../utils/formatCurrency.js';
 import { toast } from 'react-toastify';
-import OrderDetailsModal from '../components/OrderDetailsModal'; // Import the modal component
+import OrderDetailsModal from '../components/OrderDetailsModal';
 
 const ProfilePage = () => {
     const { userInfo } = useAuth();
     const [orders, setOrders] = useState([]);
     const [profile, setProfile] = useState({});
     const [loading, setLoading] = useState(true);
-    const [selectedOrder, setSelectedOrder] = useState(null); // State for the selected order
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const config = {
-                    headers: { Authorization: `Bearer ${userInfo.token}` },
-                };
-                const { data } = await axios.get('/api/v1/profile', config);
+                // 2. Use the API instance (no manual config needed)
+                const { data } = await API.get('/api/v1/profile');
                 setProfile(data);
             } catch (error) {
                 toast.error('Could not fetch profile.');
@@ -29,13 +27,12 @@ const ProfilePage = () => {
 
         const fetchMyOrders = async () => {
             try {
-                const config = {
-                    headers: {
-                        Authorization: `Bearer ${userInfo.token}`,
-                    },
-                };
-                const { data } = await axios.get('/api/v1/orders/myorders', config);
-                setOrders(data);
+                // 3. Use the API instance
+                const { data } = await API.get('/api/v1/orders/myorders');
+                // 4. Add a check to ensure data is an array
+                if (Array.isArray(data)) {
+                    setOrders(data);
+                }
             } catch (error) {
                 toast.error(error.response?.data?.message || 'Could not fetch orders.');
             } finally {

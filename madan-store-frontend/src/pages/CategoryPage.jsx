@@ -1,10 +1,10 @@
 // src/pages/CategoryPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import ProductCard from '../components/ProductCard';
 import { toast } from 'react-toastify';
-import LoadingSpinner from '../components/LoadingSpinner'; // Import spinner
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const CategoryPage = () => {
     const { categoryName } = useParams();
@@ -15,9 +15,14 @@ const CategoryPage = () => {
         const fetchProductsByCategory = async () => {
             try {
                 setLoading(true);
-                // FIX: Added /v1 to the API endpoint
-                const { data } = await axios.get(`/api/v1/products?category=${categoryName}`);
-                setProducts(data);
+                // 2. Use the API instance for the request
+                const { data } = await API.get(`/api/v1/products?category=${categoryName}`);
+                // 3. Add a check to ensure data is an array
+                if (Array.isArray(data)) {
+                    setProducts(data);
+                } else {
+                    console.error("API did not return an array for category products:", data);
+                }
             } catch (error) {
                 toast.error(`Could not fetch products for ${categoryName}.`);
             } finally {

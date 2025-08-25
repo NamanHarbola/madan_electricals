@@ -1,11 +1,11 @@
 // src/pages/AdminOrdersPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // 1. Import API
 import formatCurrency from '../utils/formatCurrency.js';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH 
+import { useAuth } from '../hooks/useAuth.js';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import LoadingSpinner from '../components/LoadingSpinner.jsx'; // Import spinner
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const AdminOrdersPage = () => {
     const [orders, setOrders] = useState([]);
@@ -14,10 +14,11 @@ const AdminOrdersPage = () => {
 
     const fetchOrders = async () => {
         try {
-            const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-            // FIX: Added /v1 to the API endpoint
-            const { data } = await axios.get('/api/v1/orders', config);
-            setOrders(data);
+            // 2. Use the central API instance (no config needed)
+            const { data } = await API.get('/api/v1/orders');
+            if (Array.isArray(data)) {
+                setOrders(data);
+            }
         } catch (err) {
             toast.error('Failed to fetch orders.');
         } finally {
@@ -33,12 +34,10 @@ const AdminOrdersPage = () => {
 
     const statusChangeHandler = async (orderId, newStatus) => {
         try {
-            const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-            // FIX: Added /v1 to the API endpoint
-            const { data: updatedOrder } = await axios.put(
+            // 3. Use API instance here too
+            const { data: updatedOrder } = await API.put(
                 `/api/v1/orders/${orderId}/status`,
-                { status: newStatus },
-                config
+                { status: newStatus }
             );
             setOrders(orders.map(o => (o._id === orderId ? updatedOrder : o)));
             toast.success(`Order status updated to ${newStatus}`);
@@ -73,7 +72,6 @@ const AdminOrdersPage = () => {
                                 <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                 <td>{formatCurrency(order.totalPrice)}</td>
                                 <td>{order.isPaid ? 'Yes' : 'No'}</td>
-                                <td><Link to={`/admin/order/${order._id}`}>View Details</Link></td>
                                 <td>
                                     <span className={`status-badge ${order.status.toLowerCase()}`}>
                                         {order.status}
@@ -92,6 +90,7 @@ const AdminOrdersPage = () => {
                                         <option value="Delivered">Delivered</option>
                                         <option value="Cancelled">Cancelled</option>
                                     </select>
+                                    <Link to={`/admin/order/${order._id}`} style={{marginLeft: '10px'}}>View</Link>
                                 </td>
                             </tr>
                         ))}

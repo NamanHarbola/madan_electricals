@@ -1,10 +1,10 @@
 // src/pages/CheckoutPage.jsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, 'useState', useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import formatCurrency from '../utils/formatCurrency';
 import { FaTrash, FaMoneyBillWave, FaCreditCard } from 'react-icons/fa';
 
@@ -14,7 +14,6 @@ const CheckoutPage = () => {
     const navigate = useNavigate();
 
     const [paymentMethod, setPaymentMethod] = useState('COD');
-    // FIX: Initialize state correctly
     const [shippingInfo, setShippingInfo] = useState({
         name: userInfo?.name || '',
         landmark: userInfo?.shippingAddress?.landmark || '',
@@ -24,7 +23,6 @@ const CheckoutPage = () => {
         country: 'India',
     });
 
-    // FIX: This effect now safely updates the form if userInfo loads after the component mounts
     useEffect(() => {
         if (userInfo) {
             setShippingInfo(prevInfo => ({
@@ -37,7 +35,6 @@ const CheckoutPage = () => {
             }));
         }
     }, [userInfo]);
-
 
     const { finalTotal, handlingCharge, taxAmount } = useMemo(() => {
         let handlingCharge = 0;
@@ -54,11 +51,11 @@ const CheckoutPage = () => {
         return { finalTotal, handlingCharge, taxAmount };
     }, [cartSubtotal, paymentMethod]);
 
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setShippingInfo(prevState => ({ ...prevState, [name]: value }));
     };
+
     const placeOrder = async (paymentDetails = {}) => {
         try {
             const order = {
@@ -69,14 +66,8 @@ const CheckoutPage = () => {
                 ...paymentDetails
             };
 
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-
-            await axios.post('/api/v1/orders', order, config);
+            // 2. Use the API instance (no manual config needed for auth)
+            await API.post('/api/v1/orders', order);
             toast.success('Order placed successfully!');
             clearCart();
             navigate('/');
@@ -84,42 +75,45 @@ const CheckoutPage = () => {
              toast.error(error.response?.data?.message || 'Failed to place order.');
         }
     };
-    const handlePayment = async () => {
-        const config = {
-            headers: { Authorization: `Bearer ${userInfo.token}` },
-        };
-        const { data: { id, amount } } = await axios.post('/api/v1/payment/orders', { amount: Math.round(finalTotal * 100) }, config);
 
-        const options = {
-            key: "rzp_live_R8MtGukbGCC0v3", // Replace with your key ID
-            amount,
-            currency: "INR",
-            name: "Madan Store",
-            description: "Payment for your order",
-            order_id: id,
-            handler: async (response) => {
-                try {
-                    const verifyConfig = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
-                    const { data } = await axios.post('/api/v1/payment/verify', response, verifyConfig);
-                    if (data.success) {
-                        placeOrder();
-                    } else {
-                        toast.error("Payment verification failed. Please contact support.");
+    const handlePayment = async () => {
+        try {
+            // 3. Use the API instance
+            const { data: { id, amount } } = await API.post('/api/v1/payment/orders', { amount: Math.round(finalTotal * 100) });
+
+            const options = {
+                key: "rzp_live_R8MtGukbGCC0v3",
+                amount,
+                currency: "INR",
+                name: "Madan Store",
+                description: "Payment for your order",
+                order_id: id,
+                handler: async (response) => {
+                    try {
+                        // 4. Use the API instance
+                        const { data } = await API.post('/api/v1/payment/verify', response);
+                        if (data.success) {
+                            placeOrder();
+                        } else {
+                            toast.error("Payment verification failed. Please contact support.");
+                        }
+                    } catch (error) {
+                        toast.error("Payment verification failed.");
                     }
-                } catch (error) {
-                    toast.error("Payment verification failed.");
+                },
+                prefill: {
+                    name: shippingInfo.name,
+                    email: userInfo.email,
+                },
+                theme: {
+                    color: "#B7A684"
                 }
-            },
-            prefill: {
-                name: shippingInfo.name,
-                email: userInfo.email,
-            },
-            theme: {
-                color: "#B7A684"
-            }
-        };
-        const rzp = new window.Razorpay(options);
-        rzp.open();
+            };
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        } catch (error) {
+            toast.error("Could not initiate payment.");
+        }
     };
 
     const submitHandler = (e) => {
@@ -130,6 +124,7 @@ const CheckoutPage = () => {
             handlePayment();
         }
     };
+
     if (cartItems.length === 0) {
         return (
             <div className="container" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '50px' }}>

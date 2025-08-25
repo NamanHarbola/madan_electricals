@@ -1,6 +1,6 @@
 // src/pages/AdminDashboardPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -48,8 +48,8 @@ const AdminDashboardPage = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                const { data } = await axios.get('/api/v1/admin/stats', config);
+                // 2. Use the API instance (no manual config needed)
+                const { data } = await API.get('/api/v1/admin/stats');
                 setStats(data);
             } catch (error) {
                 toast.error('Could not fetch dashboard stats.');
@@ -57,8 +57,10 @@ const AdminDashboardPage = () => {
                 setLoading(false);
             }
         };
-        fetchStats();
-    }, [userInfo.token]);
+        if (userInfo) {
+            fetchStats();
+        }
+    }, [userInfo]);
 
     const lineChartData = {
         labels: stats?.monthlySales.map(d => new Date(d._id.year, d._id.month - 1).toLocaleString('default', { month: 'long' })) || [],

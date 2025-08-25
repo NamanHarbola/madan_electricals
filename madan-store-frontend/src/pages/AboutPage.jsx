@@ -1,6 +1,6 @@
 // src/pages/AboutPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const AboutPage = () => {
@@ -10,7 +10,8 @@ const AboutPage = () => {
     useEffect(() => {
         const fetchAboutContent = async () => {
             try {
-                const { data } = await axios.get('/api/v1/about');
+                // 2. Use the central API instance for the request
+                const { data } = await API.get('/api/v1/about');
                 setAboutContent(data);
             } catch (error) {
                 console.error('Failed to fetch about content', error);
@@ -29,7 +30,6 @@ const AboutPage = () => {
                 <>
                     <h1 className="page-title">{aboutContent.title}</h1>
                     <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-                        {/* FIX: Added maxWidth to constrain the image size */}
                         <img 
                             src={aboutContent.image} 
                             alt="About Us" 

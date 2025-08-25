@@ -1,9 +1,9 @@
 // src/pages/AdminEditProductPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import { toast } from 'react-toastify';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import { useAuth } from '../hooks/useAuth.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const AdminEditProductPage = () => {
@@ -27,7 +27,8 @@ const AdminEditProductPage = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const { data } = await axios.get(`/api/v1/products/${id}`);
+                // 2. Use the API instance
+                const { data } = await API.get(`/api/v1/products/${id}`);
                 setProduct(data);
             } catch (error) {
                 toast.error('Could not fetch product details.');
@@ -38,16 +39,21 @@ const AdminEditProductPage = () => {
 
         const fetchCategories = async () => {
             try {
-                const { data } = await axios.get('/api/v1/categories');
-                setCategories(data);
+                // 3. Use the API instance and add array check
+                const { data } = await API.get('/api/v1/categories');
+                if (Array.isArray(data)) {
+                    setCategories(data);
+                }
             } catch (error) {
                 toast.error('Could not fetch categories.');
             }
         };
 
-        fetchProduct();
-        fetchCategories();
-    }, [id]);
+        if (userInfo) {
+            fetchProduct();
+            fetchCategories();
+        }
+    }, [id, userInfo]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -66,13 +72,10 @@ const AdminEditProductPage = () => {
         setUploading(true);
 
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            const { data } = await axios.post('/api/v1/upload', formData, config);
+            // 4. Use the API instance
+            const { data } = await API.post('/api/v1/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             setProduct(prevState => ({ ...prevState, images: [data.imageUrl] }));
             toast.success('Image uploaded successfully!');
         } catch (error) {
@@ -85,13 +88,8 @@ const AdminEditProductPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            await axios.put(`/api/v1/products/${id}`, product, config);
+            // 5. Use the API instance
+            await API.put(`/api/v1/products/${id}`, product);
             toast.success('Product updated successfully!');
             navigate('/admin/products');
         } catch (error) {

@@ -1,7 +1,7 @@
 // src/pages/ProductDetailPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // <-- 1. Import the central API instance
 import formatCurrency from '../utils/formatCurrency.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../hooks/useAuth.js';
@@ -20,7 +20,8 @@ const ProductDetailPage = () => {
 
     const fetchProduct = async () => {
         try {
-            const { data } = await axios.get(`/api/v1/products/${id}`);
+            // 2. Use the API instance
+            const { data } = await API.get(`/api/v1/products/${id}`);
             setProduct(data);
         } catch (err) {
             setError('Could not load product details.');
@@ -36,13 +37,8 @@ const ProductDetailPage = () => {
     const submitReviewHandler = async (e) => {
         e.preventDefault();
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${userInfo.token}`,
-                },
-            };
-            await axios.post(`/api/v1/products/${id}/reviews`, { rating, comment }, config);
+            // 3. Use the API instance (no manual config needed)
+            await API.post(`/api/v1/products/${id}/reviews`, { rating, comment });
             toast.success('Review submitted successfully');
             setRating(0);
             setComment('');
@@ -63,7 +59,6 @@ const ProductDetailPage = () => {
             return newQty;
         });
     };
-
 
     if (loading) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center' }}>Loading...</div>;
     if (error) return <div className="container" style={{ paddingTop: '100px', textAlign: 'center', color: 'red' }}>{error}</div>;
@@ -88,7 +83,6 @@ const ProductDetailPage = () => {
                             </span>
                         </div>
                         
-                        {/* FIX: Added the product description */}
                         <p style={{ lineHeight: '1.7', color: 'var(--color-text-secondary)' }}>
                             {product.description}
                         </p>

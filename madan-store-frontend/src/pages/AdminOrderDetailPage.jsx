@@ -1,8 +1,8 @@
 // src/pages/AdminOrderDetailPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import API from '../api'; // <-- 1. Import the central API instance
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
 import formatCurrency from '../utils/formatCurrency';
@@ -16,8 +16,8 @@ const AdminOrderDetailPage = () => {
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                const { data } = await axios.get(`/api/v1/orders/${id}`, config);
+                // 2. Use the API instance (no manual config needed)
+                const { data } = await API.get(`/api/v1/orders/${id}`);
                 setOrder(data);
             } catch (error) {
                 toast.error('Could not fetch order details.');
@@ -25,8 +25,10 @@ const AdminOrderDetailPage = () => {
                 setLoading(false);
             }
         };
-        fetchOrder();
-    }, [id, userInfo.token]);
+        if (userInfo) {
+            fetchOrder();
+        }
+    }, [id, userInfo]);
 
     if (loading) return <LoadingSpinner />;
     if (!order) return <p>Order not found.</p>;

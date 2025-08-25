@@ -1,14 +1,13 @@
 // src/pages/AdminBannerPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import API from '../api'; // <-- 1. Import the central API instance
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
 const AdminBannerPage = () => {
     const [banners, setBanners] = useState([]);
     const [image, setImage] = useState('');
-    // FIX: Add state for title and link
     const [title, setTitle] = useState('');
     const [link, setLink] = useState('/');
     const [uploading, setUploading] = useState(false);
@@ -16,8 +15,11 @@ const AdminBannerPage = () => {
 
     const fetchBanners = async () => {
         try {
-            const { data } = await axios.get('/api/v1/banners');
-            setBanners(data);
+            // 2. Use the API instance
+            const { data } = await API.get('/api/v1/banners');
+            if (Array.isArray(data)) {
+                setBanners(data);
+            }
         } catch (err) {
             toast.error('Failed to fetch banners.');
         }
@@ -34,8 +36,10 @@ const AdminBannerPage = () => {
         formData.append('image', file);
         setUploading(true);
         try {
-            const config = { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${userInfo.token}` } };
-            const { data } = await axios.post('/api/v1/upload', formData, config);
+            // 3. Use the API instance
+            const { data } = await API.post('/api/v1/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             setImage(data.imageUrl);
             toast.success('Image ready to be saved.');
         } catch (error) {
@@ -52,11 +56,9 @@ const AdminBannerPage = () => {
             return;
         }
         try {
-            const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
-            // FIX: Send title and link along with the image
-            await axios.post('/api/v1/banners', { image, title, link }, config);
+            // 4. Use the API instance
+            await API.post('/api/v1/banners', { image, title, link });
             toast.success('Banner added successfully!');
-            // Reset all fields
             setImage('');
             setTitle('');
             setLink('/');
@@ -70,8 +72,8 @@ const AdminBannerPage = () => {
     const deleteHandler = async (id) => {
         if (window.confirm('Are you sure you want to delete this banner?')) {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                await axios.delete(`/api/v1/banners/${id}`, config);
+                // 5. Use the API instance
+                await API.delete(`/api/v1/banners/${id}`);
                 toast.success('Banner deleted.');
                 fetchBanners();
             } catch (error) {
@@ -86,7 +88,6 @@ const AdminBannerPage = () => {
             <div className="form-wrapper" style={{ maxWidth: '100%', padding: '30px', margin: '0 0 40px 0' }}>
                 <h3>Add New Banner</h3>
                 <form onSubmit={submitHandler}>
-                    {/* --- ADDED TITLE AND LINK FIELDS --- */}
                     <div className="form-group">
                         <label htmlFor="title">Banner Title (for accessibility)</label>
                         <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="form-control" required placeholder="e.g., Summer Sale" />

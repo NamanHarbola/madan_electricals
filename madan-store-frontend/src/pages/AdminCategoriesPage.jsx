@@ -1,7 +1,7 @@
 // src/pages/AdminCategoriesPage.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import API from '../api'; // <-- 1. Import the central API instance
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
@@ -14,8 +14,11 @@ const AdminCategoriesPage = () => {
 
     const fetchCategories = async () => {
         try {
-            const { data } = await axios.get('/api/v1/categories');
-            setCategories(data);
+            // 2. Use the API instance
+            const { data } = await API.get('/api/v1/categories');
+            if (Array.isArray(data)) {
+                setCategories(data);
+            }
         } catch (err) {
             toast.error('Failed to fetch categories.');
         }
@@ -32,8 +35,10 @@ const AdminCategoriesPage = () => {
         formData.append('image', file);
         setUploading(true);
         try {
-            const config = { headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${userInfo.token}` } };
-            const { data } = await axios.post('/api/v1/upload', formData, config);
+            // 3. Use the API instance
+            const { data } = await API.post('/api/v1/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             setImage(data.imageUrl);
             toast.success('Image ready to be saved.');
         } catch (error) {
@@ -50,8 +55,8 @@ const AdminCategoriesPage = () => {
             return;
         }
         try {
-            const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
-            await axios.post('/api/v1/categories', { name, image }, config);
+            // 4. Use the API instance
+            await API.post('/api/v1/categories', { name, image });
             toast.success('Category added successfully!');
             setName('');
             setImage('');
@@ -65,8 +70,8 @@ const AdminCategoriesPage = () => {
     const deleteHandler = async (id) => {
         if (window.confirm('Are you sure? This cannot be undone.')) {
             try {
-                const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
-                await axios.delete(`/api/v1/categories/${id}`, config);
+                // 5. Use the API instance
+                await API.delete(`/api/v1/categories/${id}`);
                 toast.success('Category deleted.');
                 fetchCategories();
             } catch (error) {
