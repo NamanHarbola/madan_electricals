@@ -1,9 +1,9 @@
 // src/components/TrendingProducts.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api'; // Corrected import
 import ProductCard from './ProductCard';
 import { toast } from 'react-toastify';
-import LoadingSpinner from './LoadingSpinner'; // Import the spinner
+import LoadingSpinner from './LoadingSpinner';
 
 const TrendingProducts = () => {
     const [products, setProducts] = useState([]);
@@ -12,7 +12,7 @@ const TrendingProducts = () => {
     useEffect(() => {
         const fetchTrendingProducts = async () => {
             try {
-                const { data } = await axios.get('/api/v1/products');
+                const { data } = await API.get('/api/v1/products'); // Use API instance
                 setProducts(data.filter(p => p.trending));
             } catch (error) {
                 toast.error('Could not load trending products.');
@@ -23,7 +23,6 @@ const TrendingProducts = () => {
         fetchTrendingProducts();
     }, []);
 
-    // Use the LoadingSpinner component
     if (loading) {
         return <LoadingSpinner />;
     }

@@ -1,8 +1,12 @@
 // src/api/index.js
 import axios from 'axios';
 
-const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api' });
+// Create an axios instance that uses the VITE_API_URL from your .env file
+const API = axios.create({
+    baseURL: import.meta.env.VITE_API_URL
+});
 
+// This interceptor adds the auth token to every request automatically
 API.interceptors.request.use((req) => {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
@@ -11,12 +15,4 @@ API.interceptors.request.use((req) => {
     return req;
 });
 
-// Product API calls
-export const fetchProducts = () => API.get('/products');
-export const createProduct = (newProduct) => API.post('/products', newProduct);
-
-// Auth API calls
-export const login = (formData) => API.post('/auth/login', formData);
-export const register = (formData) => API.post('/auth/register', formData);
-
-// ... and so on for orders, banners, etc.
+export default API;

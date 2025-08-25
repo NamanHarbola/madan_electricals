@@ -1,7 +1,7 @@
 // src/pages/SignupPage.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api'; // Corrected import
 import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 
@@ -15,7 +15,7 @@ const SignupPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data } = await axios.post(
+            const { data } = await API.post( // Use API instance
                 '/api/v1/auth/register',
                 { name, email, password }
             );
@@ -27,7 +27,8 @@ const SignupPage = () => {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:5000/api/v1/auth/google';
+        // Use environment variable for the backend URL
+        window.location.href = `${import.meta.env.VITE_API_URL}/api/v1/auth/google`;
     };
 
     return (
@@ -74,7 +75,6 @@ const SignupPage = () => {
                     <button type="submit" className="btn-full">Sign Up</button>
                 </form>
 
-                {/* --- ADDED GOOGLE BUTTON --- */}
                 <button 
                     onClick={handleGoogleLogin} 
                     className="btn-full" 

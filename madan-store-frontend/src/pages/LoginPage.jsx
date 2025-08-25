@@ -1,8 +1,8 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth.js'; // <-- CORRECTED IMPORT PATH
+import API from '../api'; // Corrected import
+import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 
 const LoginPage = () => {
@@ -14,7 +14,7 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data } = await axios.post(
+            const { data } = await API.post( // Use API instance
                 '/api/v1/auth/login',
                 { email, password }
             );
@@ -26,7 +26,8 @@ const LoginPage = () => {
     };
     
     const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:5000/api/v1/auth/google';
+        // Use environment variable for the backend URL
+        window.location.href = `${import.meta.env.VITE_API_URL}/api/v1/auth/google`;
     };
 
     return (
