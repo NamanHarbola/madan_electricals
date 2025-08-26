@@ -5,31 +5,33 @@ import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 
 const MainLayout = () => {
-    const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            const isScrolled = window.scrollY > 10;
-            if (isScrolled !== scrolled) {
-                setScrolled(isScrolled);
-            }
-        };
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
 
-        document.addEventListener('scroll', handleScroll);
-        return () => {
-            document.removeEventListener('scroll', handleScroll);
-        };
-    }, [scrolled]);
+    // ✅ Use passive event listener for better performance
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
-    return (
-        <>
-            <Navbar scrolled={scrolled} />
-            <main>
-                <Outlet />
-            </main>
-            <Footer />
-        </>
-    );
+    // Run once on mount to set initial state (in case user reloads mid-page)
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  return (
+    <>
+      <Navbar scrolled={scrolled} />
+      <main role="main" id="main-content">
+        <Outlet />
+      </main>
+      <Footer />
+    </>
+  );
 };
 
 export default MainLayout;

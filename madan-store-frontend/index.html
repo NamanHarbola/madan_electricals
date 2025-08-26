@@ -2,13 +2,80 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <title>Madan Store</title>
+
+    <!-- SEO basics -->
+    <meta
+      name="description"
+      content="Madan Store – quality electricals, great prices, fast delivery."
+    />
+    <meta name="theme-color" content="#08747c" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:title" content="Madan Store" />
+    <meta
+      property="og:description"
+      content="Quality electricals, great prices, fast delivery."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Speed: preconnect to critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preconnect"
+      href="https://madan-electricals-backend.onrender.com"
+    />
+    <link
+      rel="dns-prefetch"
+      href="https://madan-electricals-backend.onrender.com"
+    />
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Optional: Preload first hero banner (if static & known) -->
+    <!--
+    <link
+      rel="preload"
+      as="image"
+      href="/banners/hero-1-1600.jpg"
+      imagesrcset="/banners/hero-1-800.jpg 800w,
+                   /banners/hero-1-1200.jpg 1200w,
+                   /banners/hero-1-1600.jpg 1600w"
+      imagesizes="(max-width: 599px) 100vw,
+                  (max-width: 991px) 90vw,
+                  80vw"
+      fetchpriority="high"
+    />
+    -->
   </head>
+
   <body>
     <div id="root"></div>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Razorpay: async/non-blocking -->
+    <script
+      src="https://checkout.razorpay.com/v1/checkout.js"
+      async
+      defer
+    ></script>
+
+    <!-- React app entry -->
     <script type="module" src="/src/main.jsx"></script>
+    <noscript>Please enable JavaScript to use this application.</noscript>
   </body>
 </html>
