@@ -1,16 +1,26 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      // Proxying API requests to the backend server
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
+  build: {
+    target: 'es2018',
+    minify: 'esbuild',
+    sourcemap: false,
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          icons: ['react-icons'],
+        },
       },
     },
+    chunkSizeWarningLimit: 900,
   },
-})
+  esbuild: {
+    legalComments: 'none',
+  },
+});

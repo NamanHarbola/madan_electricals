@@ -1,5 +1,5 @@
 // src/components/Navbar.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useCart } from '../context/CartContext.jsx';
@@ -16,12 +16,25 @@ const Navbar = ({ scrolled }) => {
   const closeDrawer = () => setOpen(false);
 
   const handleScrollLink = (e, targetId) => {
-    if (location.pathname !== '/') return; // only smooth scroll on homepage
+    if (location.pathname !== '/') return;
     e.preventDefault();
     const el = document.getElementById(targetId);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
     closeDrawer();
   };
+
+  // Close drawer on route change
+  useEffect(() => {
+    closeDrawer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Close on ESC
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && closeDrawer();
+    if (open) document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
 
   return (
     <header className={`header ${scrolled ? 'scrolled' : ''}`}>
@@ -62,6 +75,7 @@ const Navbar = ({ scrolled }) => {
                 <FaUserCircle />
               </NavLink>
               <button
+                type="button"
                 onClick={logout}
                 className="btn-logout desktop-only"
                 aria-label="Logout"
@@ -75,19 +89,22 @@ const Navbar = ({ scrolled }) => {
             </NavLink>
           )}
 
-          {/* Hamburger */}
+          {/* Hamburger (animated) */}
           <button
-            className="nav-toggle"
-            aria-label="Open menu"
+            type="button"
+            className={`nav-toggle ${open ? 'open' : ''}`}
+            aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open ? 'true' : 'false'}
             onClick={() => setOpen(v => !v)}
           >
-            ☰
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
         </div>
       </div>
 
-      {/* Backdrop */}
+      {/* Backdrop (click to close) */}
       {open && <div className="drawer-backdrop" onClick={closeDrawer} />}
 
       {/* Mobile drawer */}
@@ -99,12 +116,19 @@ const Navbar = ({ scrolled }) => {
         {userInfo?.isAdmin && (
           <NavLink to="/admin/dashboard" className="nav-link" onClick={closeDrawer}>Admin Panel</NavLink>
         )}
-
         <div className="drawer-footer">
           {userInfo ? (
-            <button onClick={() => { logout(); closeDrawer(); }} className="btn-logout">Logout</button>
+            <button
+              type="button"
+              onClick={() => { logout(); closeDrawer(); }}
+              className="btn-logout"
+            >
+              Logout
+            </button>
           ) : (
-            <NavLink to="/login" className="btn-login" onClick={closeDrawer}>Login</NavLink>
+            <NavLink to="/login" className="btn-login" onClick={closeDrawer}>
+              Login
+            </NavLink>
           )}
         </div>
       </div>

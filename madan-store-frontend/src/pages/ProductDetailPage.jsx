@@ -1,11 +1,12 @@
 // src/pages/ProductDetailPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import API from '../api';
 import formatCurrency from '../utils/formatCurrency.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -13,8 +14,8 @@ const ProductDetailPage = () => {
   const { userInfo } = useAuth();
 
   const [product, setProduct] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [quantity, setQuantity] = useState(1);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
 
@@ -23,12 +24,19 @@ const ProductDetailPage = () => {
   const [comment, setComment] = useState('');
 
   const fetchProduct = async () => {
+    setLoading(true);
     try {
       const { data } = await API.get(`/api/v1/products/${id}`);
-      setProduct(data);
-      setActiveIndex(0);
-      setQuantity(1);
+      // normalize images to array
+      const images = Array.isArray(data.images) && data.images.length
+        ? data.images
+        : (data.image ? [data.image] : []);
+      const normalized = { ...data, images };
+      setProduct(normalized);
+      setActiveIdx(0);
+      setQty(1);
       setErr('');
+      document.title = `${normalized.name} | Madan Store`;
     } catch (e) {
       setErr('Could not load product details.');
     } finally {
@@ -41,14 +49,21 @@ const ProductDetailPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const images = useMemo(
+    () => (product?.images && product.images.length ? product.images : []),
+    [product]
+  );
+  const mainImage = useMemo(() => images[activeIdx], [images, activeIdx]);
+
   const handleQuantityChange = (delta) => {
     if (!product) return;
-    setQuantity((q) => {
+    setQty((q) => {
       const next = q + delta;
       if (next < 1) return 1;
-      if (product.stock && next > product.stock) {
-        toast.error(`Only ${product.stock} in stock.`);
-        return product.stock;
+      const cap = typeof product.stock === 'number' ? product.stock : 99;
+      if (cap > 0 && next > cap) {
+        toast.error(`Only ${cap} in stock.`);
+        return cap;
       }
       return next;
     });
@@ -56,6 +71,10 @@ const ProductDetailPage = () => {
 
   const submitReviewHandler = async (e) => {
     e.preventDefault();
+    if (!rating) {
+      toast.error('Please select a rating.');
+      return;
+    }
     try {
       await API.post(`/api/v1/products/${id}/reviews`, { rating, comment });
       toast.success('Review submitted');
@@ -67,13 +86,7 @@ const ProductDetailPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="spinner-container">
-        <div className="spinner" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   if (err) {
     return (
@@ -91,80 +104,93 @@ const ProductDetailPage = () => {
     );
   }
 
-  const images = Array.isArray(product.images) && product.images.length ? product.images : [product.image].filter(Boolean);
-  const activeSrc = images?.[activeIndex];
+  const categoryName = product.category ? String(product.category) : '';
+  const categoryHref = categoryName ? `/category/${encodeURIComponent(categoryName)}` : '/';
 
   return (
     <>
       {/* Breadcrumbs */}
       <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <span className="sep">/</span>
-        {product.category ? (
+        <Link to="/" className="breadcrumb-link">Home</Link>
+        {categoryName && (
           <>
-            <Link to={`/category/${String(product.category).toLowerCase()}`}>{product.category}</Link>
-            <span className="sep">/</span>
+            <span className="sep">›</span>
+            <Link to={categoryHref} className="breadcrumb-link">{categoryName}</Link>
           </>
-        ) : null}
-        <span aria-current="page">{product.name}</span>
+        )}
+        <span className="sep">›</span>
+        <span className="breadcrumb-current" aria-current="page">{product.name}</span>
       </nav>
-
-      {/* Title */}
-      <div className="page-header">
-        <h1 className="page-title">{product.name}</h1>
-      </div>
 
       {/* Product detail */}
       <section className="product-detail">
         <div className="product-detail-content">
           {/* Gallery */}
-          <div className="product-detail-gallery">
+          <section className="product-detail-gallery" aria-label="Product gallery">
             <div className="pd-main">
-              {/* Use eager on first image for LCP; others lazy */}
-              <img
-                src={activeSrc}
-                alt={product.name}
-                loading="eager"
-                decoding="sync"
-              />
+              {mainImage && (
+                <img
+                  src={mainImage}
+                  alt={product.name}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                />
+              )}
             </div>
 
             {images.length > 1 && (
-              <div className="pd-thumbs" aria-label="Product images">
+              <div className="pd-thumbs" role="tablist" aria-label="Thumbnails">
                 {images.map((src, i) => (
                   <button
                     type="button"
                     key={`${src}-${i}`}
-                    className={`pd-thumb ${i === activeIndex ? 'is-active' : ''}`}
-                    onClick={() => setActiveIndex(i)}
-                    aria-label={`Show image ${i + 1}`}
+                    role="tab"
+                    aria-selected={i === activeIdx ? 'true' : 'false'}
+                    className={`pd-thumb ${i === activeIdx ? 'is-active' : ''}`}
+                    onClick={() => setActiveIdx(i)}
+                    title={`Image ${i + 1}`}
                   >
-                    <img src={src} alt={`${product.name} thumbnail ${i + 1}`} loading="lazy" decoding="async" />
+                    <img
+                      src={src}
+                      alt={`${product.name} – thumbnail ${i + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </button>
                 ))}
               </div>
             )}
-          </div>
+          </section>
 
           {/* Buy box */}
-          <aside className="pd-card">
-            <h2 className="pd-title">{product.name}</h2>
-            {product.shortDescription ? (
-              <p className="pd-sub">{product.shortDescription}</p>
-            ) : null}
+          <aside className="pd-card" aria-label="Purchase options">
+            <h1 className="pd-title">{product.name}</h1>
+            {categoryName && <p className="pd-sub">{categoryName}</p>}
 
-            <div className="pd-meta">
-              <div className="stars" aria-label={`${product.rating || 4.8} out of 5`}>★★★★★</div>
+            <div className="pd-meta" aria-live="polite">
+              <div
+                className="stars"
+                aria-label={`${product.rating ?? 4.8} out of 5`}
+                title={`${product.rating ?? 4.8} out of 5`}
+              >
+                ★★★★★
+              </div>
               {typeof product.numReviews === 'number' && (
                 <>
                   <span className="meta-dot" />
                   <span>{product.numReviews} reviews</span>
                 </>
               )}
-              {product.stock > 0 && (
+              {product.stock > 0 ? (
                 <>
                   <span className="meta-dot" />
                   <span>In stock</span>
+                </>
+              ) : (
+                <>
+                  <span className="meta-dot" />
+                  <span>Out of stock</span>
                 </>
               )}
             </div>
@@ -172,28 +198,38 @@ const ProductDetailPage = () => {
             <div className="pd-price-row">
               <div className="pd-price">{formatCurrency(product.price)}</div>
               {product.mrp ? <div className="pd-mrp">{formatCurrency(product.mrp)}</div> : null}
-              {product.discount ? <span className="pd-badge">{product.discount}% OFF</span> : null}
+              {product.mrp && product.mrp > product.price && (
+                <span className="pd-badge">
+                  Save {formatCurrency(product.mrp - product.price)}
+                </span>
+              )}
             </div>
 
-            {/* Quick bullets (fallbacks shown if no keyFeatures) */}
+            {/* Quick bullets */}
             <ul className="pd-bullets">
-              {(product.keyFeatures && product.keyFeatures.length
-                ? product.keyFeatures.slice(0, 3)
-                : ['1-year warranty', 'Free & fast delivery', '7-day easy returns']
-              ).map((f, idx) => <li key={idx}>{f}</li>)}
+              {(Array.isArray(product.keyFeatures) && product.keyFeatures.length
+                ? product.keyFeatures.slice(0, 5)
+                : (product.description ? product.description.split('\n').filter(Boolean).slice(0, 3) : [])
+              ).concat(
+                (!product.keyFeatures || product.keyFeatures.length === 0) && !product.description
+                  ? ['1-year warranty', 'Fast delivery', '7-day easy returns']
+                  : []
+              ).map((text, i) => (
+                <li key={i}>{text}</li>
+              ))}
             </ul>
 
             {/* Quantity + CTA */}
             <div className="pd-cta-row">
-              <div className="quantity-adjuster">
+              <div className="quantity-adjuster" aria-label="Quantity selector">
                 <button type="button" onClick={() => handleQuantityChange(-1)} aria-label="Decrease quantity">−</button>
-                <span>{quantity}</span>
+                <span aria-live="polite">{qty}</span>
                 <button type="button" onClick={() => handleQuantityChange(1)} aria-label="Increase quantity">+</button>
               </div>
 
               <button
                 className="pd-cta"
-                onClick={() => addToCart(product, quantity)}
+                onClick={() => addToCart(product, qty)}
                 disabled={product.stock === 0}
               >
                 {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
@@ -202,9 +238,9 @@ const ProductDetailPage = () => {
 
             {/* Trust badges */}
             <div className="pd-trust">
-              <div className="badge-tile">🚚 Free Shipping</div>
-              <div className="badge-tile">🔄 7-Day Returns</div>
-              <div className="badge-tile">🛡️ Secure Payments</div>
+              <div className="badge-tile">Secure Checkout</div>
+              <div className="badge-tile">Easy Returns</div>
+              <div className="badge-tile">Fast Delivery</div>
             </div>
           </aside>
         </div>
@@ -224,9 +260,7 @@ const ProductDetailPage = () => {
       <section className="reviews-section">
         <h2 className="section-heading" style={{ marginBottom: 20 }}>Reviews</h2>
 
-        {(!product.reviews || product.reviews.length === 0) && (
-          <p>No reviews yet.</p>
-        )}
+        {(!product.reviews || product.reviews.length === 0) && <p>No reviews yet.</p>}
 
         {product.reviews?.map((r) => (
           <div key={r._id} className="review-item">
@@ -248,6 +282,7 @@ const ProductDetailPage = () => {
                   className="form-control"
                   value={rating}
                   onChange={(e) => setRating(e.target.value)}
+                  required
                 >
                   <option value="">Select...</option>
                   <option value="1">1 - Poor</option>
@@ -266,6 +301,7 @@ const ProductDetailPage = () => {
                   className="form-control"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
+                  placeholder="Share details about quality, delivery, etc."
                 />
               </div>
 

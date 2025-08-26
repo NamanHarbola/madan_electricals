@@ -27,27 +27,40 @@ const AdminEditProductPage = () => {
     trending: false,
   });
 
-  // ----- Fetch product + categories -----
+  // ----- Fetch product + categories (abortable) -----
   useEffect(() => {
-    const fetchAll = async () => {
+    if (!userInfo) return;
+    const controller = new AbortController();
+
+    (async () => {
       try {
-        const [{ data: prod }, { data: cats }] = await Promise.all([
-          API.get(`/api/v1/products/${id}`),
-          API.get('/api/v1/categories'),
+        const [prodRes, catsRes] = await Promise.all([
+          API.get(`/api/v1/products/${id}`, { signal: controller.signal }),
+          API.get('/api/v1/categories', { signal: controller.signal }),
         ]);
+
+        const prod = prodRes.data || {};
+        const cats = Array.isArray(catsRes.data) ? catsRes.data : [];
+
         setProduct((prev) => ({
           ...prev,
           ...prod,
           images: Array.isArray(prod.images) ? prod.images : (prod.image ? [prod.image] : []),
+          // keep current category, otherwise default to first category (by name) if present
+          category: prod.category || (cats[0]?.name || ''),
         }));
-        if (Array.isArray(cats)) setCategories(cats);
+
+        setCategories(cats);
       } catch (e) {
-        toast.error('Failed to load product or categories.');
+        if (e.name !== 'CanceledError' && e.name !== 'AbortError') {
+          toast.error('Failed to load product or categories.');
+        }
       } finally {
         setLoading(false);
       }
-    };
-    if (userInfo) fetchAll();
+    })();
+
+    return () => controller.abort();
   }, [id, userInfo]);
 
   // ----- Basic handlers -----
@@ -66,7 +79,6 @@ const AdminEditProductPage = () => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    // small guardrails
     const valid = files.filter((f) => /^image\//.test(f.type));
     if (!valid.length) {
       toast.error('Please choose image files only.');
@@ -76,8 +88,12 @@ const AdminEditProductPage = () => {
     setUploading(true);
     try {
       const uploadedUrls = [];
-      // upload sequentially to keep API simple
       for (const file of valid) {
+        // guardrails: size up to ~5MB
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`"${file.name}" is larger than 5MB.`);
+          continue;
+        }
         const fd = new FormData();
         fd.append('image', file);
         const { data } = await API.post('/api/v1/upload', fd, {
@@ -89,11 +105,10 @@ const AdminEditProductPage = () => {
         setProduct((p) => ({ ...p, images: [...(p.images || []), ...uploadedUrls] }));
         toast.success(`${uploadedUrls.length} image${uploadedUrls.length > 1 ? 's' : ''} uploaded`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Image upload failed.');
     } finally {
       setUploading(false);
-      // clear input so same file can be reselected
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -119,33 +134,34 @@ const AdminEditProductPage = () => {
     dragIndex.current = null;
   };
 
+  // ----- Validation helpers -----
+  const priceNum = Number(product.price);
+  const mrpNum = Number(product.mrp);
+  const stockNum = Number(product.stock);
+  const nameValid = product.name?.trim().length >= 2;
+  const priceValid = !isNaN(priceNum) && priceNum > 0;
+  const mrpValid = !isNaN(mrpNum) && mrpNum > 0 && priceNum <= mrpNum;
+  const stockValid = !isNaN(stockNum) && stockNum >= 0;
+  const canSubmit = nameValid && priceValid && mrpValid && stockValid && !saving && !uploading;
+
   // ----- Submit -----
   const onSubmit = async (e) => {
     e.preventDefault();
-
-    // simple validation
-    if (!product.name?.trim()) return toast.error('Name is required.');
-    const price = Number(product.price);
-    const mrp = Number(product.mrp);
-    const stock = Number(product.stock);
-    if (isNaN(price) || isNaN(mrp) || price <= 0 || mrp <= 0) {
-      return toast.error('Enter valid numbers for Price and MRP.');
-    }
-    if (price > mrp) {
-      return toast.error('Selling Price should be less than or equal to MRP.');
-    }
-    if (isNaN(stock) || stock < 0) {
-      return toast.error('Enter a valid stock value (0 or more).');
+    if (!canSubmit) {
+      if (!nameValid) toast.error('Enter a valid name (min 2 characters).');
+      else if (!priceValid) toast.error('Enter a valid Selling Price.');
+      else if (!mrpValid) toast.error('MRP must be >= price and > 0.');
+      else if (!stockValid) toast.error('Enter a valid stock (0 or more).');
+      return;
     }
 
     setSaving(true);
     try {
       await API.put(`/api/v1/products/${id}`, {
         ...product,
-        price,
-        mrp,
-        stock,
-        // keep `images` as array; backend should already support this
+        price: priceNum,
+        mrp: mrpNum,
+        stock: stockNum,
       });
       toast.success('Product updated successfully!');
       navigate('/admin/products');
@@ -176,7 +192,7 @@ const AdminEditProductPage = () => {
       </div>
 
       <div className="form-wrapper" style={{ maxWidth: 880, marginInline: 'auto' }}>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} noValidate>
           {/* Name */}
           <div className="form-group">
             <label htmlFor="name">Product Name</label>
@@ -188,7 +204,9 @@ const AdminEditProductPage = () => {
               value={product.name}
               onChange={onChangeField}
               required
+              aria-invalid={!nameValid ? 'true' : 'false'}
               placeholder="e.g., MacBook Pro 14-inch"
+              autoComplete="off"
             />
           </div>
 
@@ -202,9 +220,12 @@ const AdminEditProductPage = () => {
                 className="form-control"
                 type="number"
                 step="0.01"
+                min="0"
+                inputMode="decimal"
                 value={product.price}
                 onChange={onChangeField}
                 required
+                aria-invalid={!priceValid ? 'true' : 'false'}
               />
             </div>
             <div className="form-group">
@@ -215,9 +236,12 @@ const AdminEditProductPage = () => {
                 className="form-control"
                 type="number"
                 step="0.01"
+                min="0"
+                inputMode="decimal"
                 value={product.mrp}
                 onChange={onChangeField}
                 required
+                aria-invalid={!mrpValid ? 'true' : 'false'}
               />
             </div>
           </div>
@@ -246,10 +270,12 @@ const AdminEditProductPage = () => {
                 name="stock"
                 className="form-control"
                 type="number"
+                min="0"
+                inputMode="numeric"
                 value={product.stock}
                 onChange={onChangeField}
                 required
-                min={0}
+                aria-invalid={!stockValid ? 'true' : 'false'}
               />
             </div>
 
@@ -274,7 +300,7 @@ const AdminEditProductPage = () => {
 
           {/* Images — multi upload + preview grid */}
           <div className="form-group">
-            <label>Product Images</label>
+            <label htmlFor="image-files">Product Images</label>
 
             {hasImages && (
               <div
@@ -301,16 +327,17 @@ const AdminEditProductPage = () => {
                     onDragOver={onDragOver}
                     onDrop={(e) => onDrop(e, i)}
                     title="Drag to reorder"
+                    aria-label={`Image ${i + 1}. Drag to reorder.`}
                   >
                     <div className="product-image" style={{ aspectRatio: '1/1' }}>
-                      <img src={url} alt={`Product ${i + 1}`} loading="lazy" decoding="async" />
+                      <img src={url} alt={`Product image ${i + 1}`} loading="lazy" decoding="async" />
                     </div>
                     <button
                       type="button"
                       className="btn-icon"
                       onClick={() => removeImage(i)}
                       style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.55)', color: '#fff', borderRadius: 8 }}
-                      aria-label="Remove image"
+                      aria-label={`Remove image ${i + 1}`}
                       title="Remove"
                     >
                       ✕
@@ -321,6 +348,7 @@ const AdminEditProductPage = () => {
             )}
 
             <input
+              id="image-files"
               ref={fileInputRef}
               type="file"
               accept="image/*"
@@ -330,7 +358,7 @@ const AdminEditProductPage = () => {
             />
             {uploading && <p style={{ marginTop: 8 }}>Uploading image(s)…</p>}
             <small style={{ color: 'var(--color-text-secondary)' }}>
-              Tip: You can upload multiple images. Drag cards to reorder; first image becomes the main image on the product page.
+              You can upload multiple images. Drag cards to reorder; the first image is the main image on the product page.
             </small>
           </div>
 
@@ -357,7 +385,8 @@ const AdminEditProductPage = () => {
             type="submit"
             className="btn-full"
             style={{ marginTop: 20 }}
-            disabled={saving || uploading}
+            disabled={!canSubmit}
+            aria-disabled={!canSubmit ? 'true' : 'false'}
           >
             {saving ? 'Saving…' : uploading ? 'Waiting for uploads…' : 'Update Product'}
           </button>

@@ -64,27 +64,37 @@ const SectionSkeleton = ({ title }) => (
   <section className="section-pad">
     <div className="container">
       <h2 className="section-heading">{title}</h2>
-      <div style={{
-        height: 160,
-        borderRadius: 12,
-        background: 'linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.03), rgba(0,0,0,0.06))',
-        backgroundSize: '200% 100%',
-        animation: 'skeleton 1.2s ease-in-out infinite'
-      }} />
+      <div
+        style={{
+          height: 160,
+          borderRadius: 12,
+          background: 'linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.03), rgba(0,0,0,0.06))',
+          backgroundSize: '200% 100%',
+          animation: 'skeleton 1.2s ease-in-out infinite',
+        }}
+      />
     </div>
   </section>
 );
 
 /**
  * LazyVisible mounts children only after the wrapper is intersecting the viewport.
- * This avoids executing component code (and fetching) before the user scrolls there.
+ * If IntersectionObserver is unavailable, it mounts immediately.
  */
 const LazyVisible = ({ children, rootMargin = '200px', minHeight = 200 }) => {
   const [visible, setVisible] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
-    if (!ref.current || visible) return;
+    if (visible) return;
+
+    // Fallback for older browsers / SSR
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setVisible(true);
+      return;
+    }
+
+    if (!ref.current) return;
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -114,38 +124,43 @@ const HomePage = () => {
       <HeroSlider />
 
       {/* Categories (loads when close to viewport) */}
-      <Suspense fallback={<CategoriesSkeleton />}>
-        <LazyVisible rootMargin="200px" minHeight={420}>
+      <LazyVisible rootMargin="200px" minHeight={420}>
+        <Suspense fallback={<CategoriesSkeleton />}>
           <Categories />
-        </LazyVisible>
-      </Suspense>
+        </Suspense>
+      </LazyVisible>
 
       {/* Trending Products */}
-      <Suspense fallback={<ProductsSkeleton />}>
-        <LazyVisible rootMargin="200px" minHeight={560}>
+      <LazyVisible rootMargin="200px" minHeight={560}>
+        <Suspense fallback={<ProductsSkeleton />}>
           <TrendingProducts />
-        </LazyVisible>
-      </Suspense>
+        </Suspense>
+      </LazyVisible>
 
       {/* About */}
-      <Suspense fallback={<SectionSkeleton title="About Us" />}>
-        <LazyVisible rootMargin="200px" minHeight={260}>
+      <LazyVisible rootMargin="200px" minHeight={260}>
+        <Suspense fallback={<SectionSkeleton title="About Us" />}>
           <AboutSection />
-        </LazyVisible>
-      </Suspense>
+        </Suspense>
+      </LazyVisible>
 
       {/* Contact */}
-      <Suspense fallback={<SectionSkeleton title="Contact Us" />}>
-        <LazyVisible rootMargin="200px" minHeight={260}>
+      <LazyVisible rootMargin="200px" minHeight={260}>
+        <Suspense fallback={<SectionSkeleton title="Contact Us" />}>
           <ContactSection />
-        </LazyVisible>
-      </Suspense>
+        </Suspense>
+      </LazyVisible>
 
-      {/* Inline keyframes for skeleton (used above) */}
+      {/* Inline keyframes for skeleton + reduced-motion support */}
       <style>{`
         @keyframes skeleton {
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="animation: skeleton"] {
+            animation: none !important;
+          }
         }
       `}</style>
     </>

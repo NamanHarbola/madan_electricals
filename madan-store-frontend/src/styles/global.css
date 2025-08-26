@@ -16,7 +16,7 @@
   --color-text-secondary:#95a5a6;
   --color-border:#dfe6e9;
 
-  --color-error:#e74c3c;     /* destructive actions only */
+  --color-error:#e74c3c;
   --color-success:#27ae60;
 
   --ff:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -42,9 +42,10 @@ body{margin:0;padding:0;overflow-x:hidden}
 img,svg,video{max-width:100%;height:auto}
 a{color:inherit;text-decoration:none}
 a:hover{color:var(--color-accent)}
+a:focus-visible, button:focus-visible, input:focus-visible { outline:2px solid var(--color-secondary); outline-offset:2px; }
 main{padding-top:calc(var(--banner-h) + var(--header-h) + 16px)}
 .container{width:min(100%,var(--container));margin-inline:auto;padding-inline:var(--s-24)}
-button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
+button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px}
 
 /* ---------- 2) Headings / Buttons ---------- */
 .section-heading{margin:0 0 48px 0;text-align:center;color:var(--color-primary);
@@ -56,6 +57,10 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
   background:linear-gradient(45deg,var(--color-accent),var(--color-secondary));box-shadow:0 6px 20px rgba(62,213,205,.28);
   transition:var(--transition-fast)}
 .btn-full:hover{transform:translateY(-2px)}
+
+/* Small icon-only button used across admin lists */
+.btn-icon{border:1px solid var(--color-border);background:var(--color-surface);padding:6px 8px;border-radius:8px;cursor:pointer}
+.btn-icon:hover{background:#f6f7f8}
 
 /* ---------- 3) Header / Navbar ---------- */
 .header{position:fixed;inset:0 0 auto 0;z-index:1000;background:var(--color-primary);
@@ -75,9 +80,9 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
 .nav-link{display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:500;padding:8px 12px;border-radius:var(--r-sm);
   position:relative;transition:var(--transition-fast);text-decoration:none}
 .nav-link:hover{color:var(--color-accent)}
-.nav-link::after{content:none} /* remove decorative underline bar */
+.nav-link::after{content:none}
+.nav-link.active{color:var(--color-accent)}
 
-/* Right side actions */
 .nav-actions{display:flex;align-items:center;gap:var(--s-16)}
 .icon-link{font-size:1.6rem;color:#fff}
 .cart-icon-wrapper{position:relative;font-size:1.5rem;color:#fff;padding:8px}
@@ -85,33 +90,33 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
   border:2px solid var(--color-primary);width:20px;height:20px;display:grid;place-items:center;border-radius:999px;
   font-size:11px;font-weight:700}
 
-/* Make logout look like a button even if component uses .nav-link */
-.nav-actions button.nav-link,
-.nav-actions .nav-link[aria-label="Logout"],
-.btn-logout{
+/* Desktop pill buttons */
+.btn-logout,.btn-login{
   padding:8px 16px;border:none;border-radius:20px;font-weight:600;cursor:pointer;margin-left:8px;
-  transition:var(--transition-fast);display:inline-flex;align-items:center;justify-content:center;color:#fff;
-  background:var(--color-primary);
+  transition:var(--transition-fast);display:inline-flex;align-items:center;justify-content:center;color:#fff
 }
-.nav-actions button.nav-link:hover,
+.btn-logout{background:var(--color-primary)}
 .btn-logout:hover{background:var(--color-primary-dark)}
-/* Login pill */
-.btn-login{padding:8px 16px;border:none;border-radius:20px;font-weight:600;cursor:pointer;margin-left:8px;
-  transition:var(--transition-fast);display:inline-flex;align-items:center;justify-content:center;color:#fff;background:var(--color-accent)}
+.btn-login{background:var(--color-accent)}
 .btn-login:hover{background:var(--color-accent-dark)}
 
 .desktop-only{display:inline-flex}
 @media (max-width:992px){.desktop-only{display:none}}
 
-/* --- Hamburger Button (bars + animation to X) --- */
+/* --- Hamburger Button ---
+   Supports BOTH:
+   1) three <span> bars (animated to “X”)
+   2) text “☰” fallback (no spans) */
 .nav-toggle{
-  background:none;border:none;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;
-  width:28px;height:20px;padding:0;z-index:1100; /* above header, but only its box is clickable */
+  background:none;border:1px solid rgba(255,255,255,.28);border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;padding:0;z-index:1100;color:#fff;font-size:22px;line-height:1;
 }
-.nav-toggle span{display:block;height:3px;width:100%;background:#fff;border-radius:2px;transition:all .3s ease-in-out}
-.nav-toggle.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.nav-toggle span{display:block;height:3px;width:22px;background:#fff;border-radius:2px;transition:all .3s ease-in-out}
+.nav-toggle span+span{margin-top:4px}
+.nav-toggle.open span:nth-child(1){transform:rotate(45deg) translate(4px,5px)}
 .nav-toggle.open span:nth-child(2){opacity:0}
-.nav-toggle.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+.nav-toggle.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-5px)}
 
 @media (min-width:992px){
   .nav-menu{display:flex}
@@ -122,13 +127,17 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
 .drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999}
 .mobile-drawer{
   position:fixed;top:0;right:-100%;width:70%;max-width:300px;height:100%;background:var(--color-surface);
-  box-shadow:-4px 0 12px rgba(0,0,0,.2);display:flex;flex-direction:column;padding:20px;z-index:1000;
-  transition:right .3s ease-in-out;border-left:1px solid var(--color-border)
+  box-shadow:-4px 0 12px rgba(0,0,0,.2);display:flex;flex-direction:column;
+  padding:calc(var(--banner-h) + var(--header-h)) 20px 20px;
+  z-index:1000; transition:right .3s ease-in-out;border-left:1px solid var(--color-border)
 }
 .mobile-drawer.open{right:0}
 .mobile-drawer .nav-link{padding:12px 0;font-size:1.1rem;border-bottom:1px solid var(--color-border);color:var(--color-text)}
 .drawer-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--color-border)}
 .drawer-footer .btn-logout,.drawer-footer .btn-login{width:100%}
+
+/* Optional helper when drawer is open – add/remove this class via JS */
+body.drawer-open{overflow:hidden}
 
 /* ---------- 4) Spinner ---------- */
 .spinner-container{display:flex;justify-content:center;align-items:center;padding:80px 0}
@@ -183,6 +192,10 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
 .auth-switch-text{text-align:center;margin-top:var(--s-24);color:var(--color-text-secondary)}
 .auth-switch-text a{color:var(--color-secondary);font-weight:600}
 
+/* Grid row helper used in forms */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:560px){.form-row{grid-template-columns:1fr}}
+
 /* ---------- 10) Cart Sidebar ---------- */
 .cart-sidebar{position:fixed;top:0;right:-100%;width:min(400px,92%);height:100%;background:var(--color-surface);
   border-left:1px solid var(--color-border);box-shadow:-10px 0 20px rgba(0,0,0,.1);z-index:2000;transition:right .3s;display:flex;flex-direction:column}
@@ -217,13 +230,16 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
 @media (max-width:1200px){.charts-grid{grid-template-columns:1fr}}
 .chart-container{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:clamp(12px,2vw,24px);min-width:0}
 .chart-container h3{margin:0 0 12px 0;text-align:left;font-weight:600;color:var(--color-text)}
+/* ChartJS canvas sizing fix */
+.chart-container canvas{display:block !important; width:100% !important; height:auto !important; max-height:420px}
 
+/* Tables */
 .admin-table-container{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden}
 .admin-table-wrap{width:100%;overflow:auto}
 .admin-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px;table-layout:fixed}
 .admin-table th,.admin-table td{padding:12px 14px;vertical-align:middle;text-align:left;border-bottom:1px solid var(--color-border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .admin-table th{position:sticky;top:0;z-index:1;background:#f8f9fa;color:var(--color-text);font-weight:600}
-.admin-table tr:hover td{background:color-mix(in oklab, var(--color-background) 70%, white)}
+.admin-table tr:hover td{background:color-mix(in oklab, var(--color-bg) 70%, white)}
 .status-badge{display:inline-flex;align-items:center;justify-content:center;min-width:90px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;text-transform:capitalize}
 .status-badge.pending{background:#f39c12}.status-badge.paid{background:#27ae60}.status-badge.shipped{background:#3498db}.status-badge.delivered{background:#8e44ad}.status-badge.cancelled{background:#e74c3c}
 
@@ -322,19 +338,26 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
    PRODUCT DETAIL — PREMIUM UPGRADE (overrides & new UI)
    ============================================================ */
 .product-detail{padding-block:32px 64px}
+
 .product-detail-content{
   display:grid;
-  grid-template-columns:1.05fr 1fr; /* gallery | buy box */
+  grid-template-columns:1.05fr 1fr;
   gap:42px;
   align-items:start;
   max-width:1120px;
   margin:0 auto;
 }
-@media (max-width:992px){.product-detail-content{grid-template-columns:1fr;gap:28px}}
+@media (max-width:992px){
+  .product-detail-content{grid-template-columns:1fr;gap:28px}
+}
 
+/* Breadcrumbs (two variants used across pages) */
 .breadcrumbs{width:min(1120px,92%);margin:0 auto 12px;font-size:.95rem;color:var(--color-text-secondary)}
 .breadcrumbs a{color:var(--color-secondary)}
 .breadcrumbs span.sep{margin:0 6px;opacity:.5}
+.breadcrumb{width:min(1120px,92%);margin:0 auto 12px;font-size:.95rem;color:var(--color-text-secondary)}
+.breadcrumb-link{color:var(--color-secondary)}
+.breadcrumb-current{color:var(--color-text)}
 
 .product-detail-gallery{
   background:var(--color-surface);
@@ -347,7 +370,7 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
 .pd-main img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
 .pd-main:hover img{transform:scale(1.03)}
 .pd-thumbs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:12px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
-.pd-thumb{position:relative;aspect-ratio:1/1;border-radius:10px;border:1px solid var(--color-border);overflow:hidden;cursor:pointer;background:#fff}
+.pd-thumb{position:relative;aspect-ratio:1/1;border:1px solid var(--color-border);border-radius:10px;overflow:hidden;cursor:pointer;background:#fff}
 .pd-thumb img{width:100%;height:100%;object-fit:cover}
 .pd-thumb.is-active{outline:2px solid var(--color-secondary)}
 
@@ -360,42 +383,34 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
 }
 .pd-title{margin:0 0 8px 0;font-size:clamp(22px,3.2vw,30px);line-height:1.25;color:var(--color-text)}
 .pd-sub{color:var(--color-text-secondary);margin:0 0 12px}
-
 .pd-meta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:14px}
 .stars{color:#f4b400;letter-spacing:1px}
 .meta-dot{width:6px;height:6px;border-radius:50%;background:var(--color-border)}
-
 .pd-price-row{display:flex;align-items:baseline;gap:12px;margin:10px 0 6px}
 .pd-price{color:var(--color-primary);font-weight:800;font-size:clamp(22px,3vw,28px);letter-spacing:.2px}
 .pd-mrp{color:var(--color-text-secondary);text-decoration:line-through;font-size:1rem}
 .pd-badge{padding:4px 10px;border-radius:999px;background:color-mix(in oklab, var(--color-accent) 20%, white);color:var(--color-primary);font-weight:700;font-size:.85rem}
-
 .pd-bullets{margin:10px 0 16px 0;padding-left:18px;color:var(--color-text)}
 .pd-bullets li{margin:6px 0}
-
 .pd-cta-row{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;margin-top:12px}
 .pd-cta{height:44px;border:none;border-radius:10px;font-weight:700;color:#fff;
   background:linear-gradient(45deg,var(--color-accent),var(--color-secondary));
   box-shadow:0 6px 20px rgba(62,213,205,.28);cursor:pointer;transition:transform .18s, box-shadow .18s}
 .pd-cta:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
 .pd-cta:disabled{opacity:.5;cursor:not-allowed}
-
 .pd-trust{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
 @media (min-width:520px){.pd-trust{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .badge-tile{background:#f7fbfb;border:1px dashed var(--color-border);color:var(--color-primary);border-radius:10px;padding:10px 12px;font-size:.92rem;text-align:center}
 
+/* sticky buy box */
 @media (min-width:992px){
   .pd-card{position:sticky;top:calc(var(--banner-h) + var(--header-h) + 16px)}
 }
+
+/* polish older rule */
 .product-detail-image img{border-radius:12px}
 
-/* Breadcrumb links */
-.breadcrumb{font-size:.95rem;color:var(--color-text-secondary)}
-.breadcrumb-link{color:var(--color-secondary);text-decoration:none}
-.breadcrumb-link:hover{text-decoration:underline}
-.breadcrumb-current{font-weight:600;color:var(--color-text)}
-
-/* ---------- 19) Orders: desktop vs mobile ---------- */
+/* ---------- 19) Profile Orders – helper visibility classes ---------- */
 .desktop-only { display: block; }
 .mobile-only { display: none; }
 @media (max-width: 768px) {
@@ -403,22 +418,104 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px} /* touch targets */
   .mobile-only { display: block; }
 }
 
-/* ---------- 20) Order modal drawer (mobile friendly) ---------- */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5);
-  display: flex; justify-content: center; align-items: flex-end; z-index: 2000; animation: fadeIn .3s ease; }
+/* ---------- 20) Order modal (mobile-friendly) ---------- */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; justify-content: center; align-items: flex-end; z-index: 2000; animation: fadeIn .3s ease; }
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-.order-modal { background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 600px; max-height: 90vh;
-  display: flex; flex-direction: column; overflow-y: auto; animation: slideUp .35s ease; }
+.order-modal { background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; overflow-y: auto; animation: slideUp .35s ease; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@media (min-width: 768px) {
-  .modal-backdrop { align-items: center; }
-  .order-modal { border-radius: 12px; max-height: 80vh; }
-}
-.order-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #eee;
-  background: var(--color-primary); color: #fff; border-radius: 16px 16px 0 0; }
+@media (min-width: 768px) { .modal-backdrop { align-items: center; } .order-modal { border-radius: 12px; max-height: 80vh; } }
+.order-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #eee; background: var(--color-primary); color: #fff; border-radius: 16px 16px 0 0; }
 .order-modal-header h2 { margin: 0; font-size: 1.1rem; }
 .modal-close-btn { background: none; border: none; font-size: 1.5rem; color: #fff; cursor: pointer; }
 .order-modal-body { padding: 20px; }
 .order-items-list { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
 .order-item-card { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
 .order-item-card img { width: 56px; height: 56px; border-radius: 6px; object-fit: cover; }
+
+/* ---------- 21) Reduced motion (perf + a11y) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .discount-banner p{animation: none; transform: none}
+  .slide{transition: none}
+  .btn-full, .pd-cta{transition: none}
+}
+
+/* ---------- 22) Screen-reader utility ---------- */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+/* === Product Detail — mobile downsize fixes === */
+@media (max-width: 480px) {
+  .product-detail { padding-block: 16px 28px; }
+
+  .product-detail-content {
+    gap: 16px;
+    width: 92%;
+    margin-inline: auto;
+  }
+
+  /* Gallery: cap height + contain so it doesn't dominate */
+  .product-detail-gallery {
+    padding: 8px;
+    border-radius: 12px;
+  }
+  .pd-main {
+    aspect-ratio: auto;       /* let height control size */
+    height: 48vh;             /* cap on small screens */
+    max-height: 360px;
+    border-radius: 10px;
+  }
+  .pd-main img {
+    object-fit: contain;      /* no aggressive zoom/crop */
+    background: #fff;
+  }
+  .pd-thumbs {
+    gap: 8px;
+  }
+  .pd-thumb { border-radius: 8px; }
+
+  /* Buy box: tighter paddings & type scales */
+  .pd-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+  .pd-title {
+    font-size: clamp(18px, 5.4vw, 22px);
+    margin-bottom: 6px;
+  }
+  .pd-sub { margin: 0 0 8px; font-size: .95rem; }
+  .pd-meta { gap: 8px; margin-bottom: 10px; font-size: .95rem; }
+  .pd-price-row { gap: 8px; margin: 8px 0 4px; }
+  .pd-price { font-size: clamp(18px, 5.2vw, 22px); }
+  .pd-mrp { font-size: .95rem; }
+  .pd-badge { font-size: .8rem; padding: 3px 8px; }
+
+  .pd-bullets { margin: 8px 0 12px; font-size: .96rem; }
+  .pd-bullets li { margin: 4px 0; }
+
+  .pd-cta-row { grid-template-columns: auto 1fr; gap: 10px; margin-top: 10px; }
+  .quantity-adjuster button { padding: 8px 10px; font-size: 1.2rem; }
+  .quantity-adjuster span { min-width: 40px; }
+  .pd-cta { height: 42px; border-radius: 9px; }
+
+  .pd-trust { gap: 8px; margin-top: 10px; }
+  .badge-tile { padding: 8px 10px; font-size: .9rem; }
+
+  /* Breadcrumbs spacing */
+  .breadcrumbs { width: 92%; margin: 0 auto 8px; font-size: .9rem; }
+}
+
+/* Slightly wider phones */
+@media (min-width: 481px) and (max-width: 640px) {
+  .pd-main { height: 52vh; max-height: 420px; }
+  .pd-title { font-size: clamp(20px, 4.8vw, 24px); }
+  .pd-price { font-size: clamp(20px, 4.8vw, 24px); }
+}
+

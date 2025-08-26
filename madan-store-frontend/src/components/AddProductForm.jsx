@@ -1,148 +1,341 @@
 // src/components/AddProductForm.jsx
-import React, { useState, useEffect } from 'react';
-import API from '../api'; // <-- 1. IMPORT YOUR CENTRAL API INSTANCE
+import React, { useState, useEffect, useId } from 'react';
+import API from '../api';
 import { toast } from 'react-toastify';
 import { useAuth } from '../hooks/useAuth.js';
 import { useNavigate } from 'react-router-dom';
 
+const MAX_IMAGE_MB = 4; // reject huge images to keep uploads fast
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 const AddProductForm = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        price: '',
-        mrp: '',
-        category: '',
-        description: '',
-        stock: '',
-        trending: false,
-    });
-    const [imageFile, setImageFile] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [categories, setCategories] = useState([]);
-    const { userInfo } = useAuth();
-    const navigate = useNavigate();
+  const { userInfo } = useAuth();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                // 2. USE THE API INSTANCE
-                const { data } = await API.get('/api/v1/categories');
-                if (Array.isArray(data) && data.length > 0) {
-                    setCategories(data);
-                    setFormData(prevState => ({ ...prevState, category: data[0].name }));
-                }
-            } catch (error) {
-                toast.error('Could not fetch categories.');
-            }
-        };
-        fetchCategories();
-    }, []);
+  const [formData, setFormData] = useState({
+    name: '',
+    price: '',
+    mrp: '',
+    category: '',
+    description: '',
+    stock: '',
+    trending: false,
+  });
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
-    };
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [errors, setErrors] = useState({});
+  const nameId = useId();
+  const priceId = useId();
+  const mrpId = useId();
+  const stockId = useId();
+  const catId = useId();
+  const descId = useId();
+  const imgId = useId();
 
-    const handleFileChange = (e) => {
-        setImageFile(e.target.files[0]);
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!imageFile) {
-            toast.error('Please select an image to upload.');
-            return;
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await API.get('/api/v1/categories');
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+          setFormData(prev => ({ ...prev, category: data[0].name }));
         }
-        setUploading(true);
-
-        const fileUploadData = new FormData();
-        fileUploadData.append('image', imageFile);
-
-        try {
-            // Step 1: Upload the image and get the URL
-            // 3. USE THE API INSTANCE (No need for config, it's handled automatically)
-            const { data: uploadData } = await API.post('/api/v1/upload', fileUploadData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            // Step 2: Create the product data payload
-            const newProduct = {
-                ...formData,
-                images: [uploadData.imageUrl],
-            };
-
-            // Step 3: Submit the product data
-            // 4. USE THE API INSTANCE
-            await API.post('/api/v1/products', newProduct);
-            
-            toast.success(`Successfully added product: ${newProduct.name}`);
-            navigate('/admin/products');
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to add product.');
-        } finally {
-            setUploading(false);
-        }
+      } catch {
+        toast.error('Could not fetch categories.');
+      }
     };
+    fetchCategories();
+  }, []);
 
-    return (
-        <div className="form-wrapper">
-            <form onSubmit={handleSubmit}>
-                {/* JSX for the form remains the same */}
-                <div className="form-group">
-                    <label htmlFor="name">Product Name</label>
-                    <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} className="form-control" required />
-                </div>
+  const setField = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined })); // clear field error on edit
+  };
 
-                <div className="form-row" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
-                    <div className="form-group">
-                        <label htmlFor="price">Selling Price</label>
-                        <input type="number" id="price" name="price" value={formData.price} onChange={handleChange} className="form-control" required step="0.01" />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="mrp">MRP</label>
-                        <input type="number" id="mrp" name="mrp" value={formData.mrp} onChange={handleChange} className="form-control" required step="0.01" />
-                    </div>
-                </div>
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setField(name, type === 'checkbox' ? checked : value);
+  };
 
-                <div className="form-group">
-                    <label htmlFor="description">Description</label>
-                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} className="form-control" rows="4" required></textarea>
-                </div>
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setImageFile(null);
+      setImagePreview('');
+      return;
+    }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error('Please choose a JPG, PNG, or WebP image.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+      toast.error(`Image must be ≤ ${MAX_IMAGE_MB}MB.`);
+      e.target.value = '';
+      return;
+    }
+    setImageFile(file);
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+  };
 
-                 <div className="form-row" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
-                    <div className="form-group">
-                        <label htmlFor="stock">Stock</label>
-                        <input type="number" id="stock" name="stock" value={formData.stock} onChange={handleChange} className="form-control" required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="category">Category</label>
-                        <select id="category" name="category" value={formData.category} onChange={handleChange} className="form-control">
-                            {categories.map((cat) => (
-                                <option key={cat._id} value={cat.name}>{cat.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                
-                <div className="form-group">
-                    <label>Product Image</label>
-                    <input type="file" id="image-file-input" onChange={handleFileChange} className="form-control" required />
-                    {uploading && <p>Uploading image...</p>}
-                </div>
+  // simple client validation
+  const validate = () => {
+    const next = {};
+    const price = Number(formData.price);
+    const mrp = Number(formData.mrp);
+    const stock = Number(formData.stock);
 
-                 <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
-                    <input type="checkbox" id="trending" name="trending" checked={formData.trending} onChange={handleChange} style={{ width: 'auto', height: 'auto' }} />
-                    <label htmlFor="trending" style={{marginBottom: 0}}>Mark as Trending</label>
-                </div>
+    if (!formData.name.trim()) next.name = 'Product name is required.';
+    if (!formData.description.trim()) next.description = 'Description is required.';
+    if (!formData.category) next.category = 'Please choose a category.';
 
-                <button type="submit" className="btn-full" style={{marginTop: '20px'}} disabled={uploading}>
-                    {uploading ? 'Uploading...' : 'Add Product'}
-                </button>
-            </form>
+    if (!formData.price) next.price = 'Price is required.';
+    else if (price <= 0) next.price = 'Price must be greater than 0.';
+
+    if (!formData.mrp) next.mrp = 'MRP is required.';
+    else if (mrp <= 0) next.mrp = 'MRP must be greater than 0.';
+    else if (price > mrp) next.mrp = 'MRP should be ≥ price.';
+
+    if (formData.stock === '') next.stock = 'Stock is required.';
+    else if (!Number.isFinite(stock) || stock < 0) next.stock = 'Stock cannot be negative.';
+
+    if (!imageFile) next.image = 'Please select an image.';
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) {
+      // move focus to first error
+      const firstKey = Object.keys(errors)[0];
+      if (firstKey) document.getElementById(firstKey)?.focus();
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setUploading(true);
+
+      // Step 1: upload image
+      const fd = new FormData();
+      fd.append('image', imageFile);
+      const { data: uploadData } = await API.post('/api/v1/upload', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      // Step 2: create product
+      const payload = {
+        ...formData,
+        price: Number(formData.price),
+        mrp: Number(formData.mrp),
+        stock: Number(formData.stock),
+        images: [uploadData.imageUrl],
+      };
+
+      await API.post('/api/v1/products', payload);
+
+      toast.success(`Product added: ${payload.name}`);
+      navigate('/admin/products');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to add product.');
+    } finally {
+      setUploading(false);
+      setSubmitting(false);
+    }
+  };
+
+  const disabled = uploading || submitting;
+
+  return (
+    <div className="form-wrapper" role="region" aria-labelledby="add-product-heading">
+      <h1 id="add-product-heading" className="page-title" style={{ paddingTop: 0, marginBottom: 16 }}>
+        Add Product
+      </h1>
+
+      <form onSubmit={handleSubmit} noValidate aria-describedby="form-errors" >
+        {/* Name */}
+        <div className="form-group">
+          <label htmlFor={nameId}>Product Name</label>
+          <input
+            id={nameId}
+            name="name"
+            type="text"
+            className="form-control"
+            placeholder="e.g., Schneider MCB 32A"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? `${nameId}-err` : undefined}
+            disabled={disabled}
+          />
+          {errors.name && <div id={`${nameId}-err`} className="field-error" role="alert">{errors.name}</div>}
         </div>
-    );
+
+        {/* Price & MRP */}
+        <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="form-group">
+            <label htmlFor={priceId}>Selling Price</label>
+            <input
+              id={priceId}
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              className="form-control"
+              value={formData.price}
+              onChange={handleChange}
+              required
+              aria-invalid={!!errors.price}
+              aria-describedby={errors.price ? `${priceId}-err` : undefined}
+              disabled={disabled}
+            />
+            {errors.price && <div id={`${priceId}-err`} className="field-error" role="alert">{errors.price}</div>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor={mrpId}>MRP</label>
+            <input
+              id={mrpId}
+              name="mrp"
+              type="number"
+              min="0"
+              step="0.01"
+              className="form-control"
+              value={formData.mrp}
+              onChange={handleChange}
+              required
+              aria-invalid={!!errors.mrp}
+              aria-describedby={errors.mrp ? `${mrpId}-err` : undefined}
+              disabled={disabled}
+            />
+            {errors.mrp && <div id={`${mrpId}-err`} className="field-error" role="alert">{errors.mrp}</div>}
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="form-group">
+          <label htmlFor={descId}>Description</label>
+          <textarea
+            id={descId}
+            name="description"
+            rows={4}
+            className="form-control"
+            value={formData.description}
+            onChange={handleChange}
+            required
+            aria-invalid={!!errors.description}
+            aria-describedby={errors.description ? `${descId}-err` : undefined}
+            disabled={disabled}
+          />
+          {errors.description && <div id={`${descId}-err`} className="field-error" role="alert">{errors.description}</div>}
+        </div>
+
+        {/* Stock & Category */}
+        <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="form-group">
+            <label htmlFor={stockId}>Stock</label>
+            <input
+              id={stockId}
+              name="stock"
+              type="number"
+              min="0"
+              className="form-control"
+              value={formData.stock}
+              onChange={handleChange}
+              required
+              aria-invalid={!!errors.stock}
+              aria-describedby={errors.stock ? `${stockId}-err` : undefined}
+              disabled={disabled}
+            />
+            {errors.stock && <div id={`${stockId}-err`} className="field-error" role="alert">{errors.stock}</div>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor={catId}>Category</label>
+            <select
+              id={catId}
+              name="category"
+              className="form-control"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              aria-invalid={!!errors.category}
+              aria-describedby={errors.category ? `${catId}-err` : undefined}
+              disabled={disabled || categories.length === 0}
+            >
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
+            {errors.category && <div id={`${catId}-err`} className="field-error" role="alert">{errors.category}</div>}
+          </div>
+        </div>
+
+        {/* Image */}
+        <div className="form-group">
+          <label htmlFor={imgId}>Product Image</label>
+          <input
+            id={imgId}
+            type="file"
+            className="form-control"
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+            onChange={handleFileChange}
+            aria-invalid={!!errors.image}
+            aria-describedby={errors.image ? `${imgId}-err` : `${imgId}-hint`}
+            disabled={disabled}
+            required
+          />
+          {errors.image ? (
+            <div id={`${imgId}-err`} className="field-error" role="alert">{errors.image}</div>
+          ) : (
+            <small id={`${imgId}-hint`} className="hint">JPG/PNG/WebP, up to {MAX_IMAGE_MB}MB.</small>
+          )}
+          {imagePreview && (
+            <div style={{ marginTop: 12 }}>
+              <img
+                src={imagePreview}
+                alt="Selected product preview"
+                style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--color-border)' }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Trending */}
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+          <input
+            id="trending"
+            name="trending"
+            type="checkbox"
+            checked={formData.trending}
+            onChange={handleChange}
+            style={{ width: 'auto', height: 'auto' }}
+            disabled={disabled}
+          />
+          <label htmlFor="trending" style={{ marginBottom: 0 }}>Mark as Trending</label>
+        </div>
+
+        <div id="form-errors" aria-live="polite" style={{ minHeight: 1 }} />
+        <button
+          type="submit"
+          className="btn-full"
+          style={{ marginTop: 20 }}
+          disabled={disabled}
+          aria-busy={submitting || uploading}
+        >
+          {submitting || uploading ? 'Saving…' : 'Add Product'}
+        </button>
+      </form>
+    </div>
+  );
 };
 
 export default AddProductForm;

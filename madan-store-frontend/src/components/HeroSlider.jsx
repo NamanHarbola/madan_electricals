@@ -7,7 +7,7 @@ import LoadingSpinner from './LoadingSpinner';
 
 const AUTO_INTERVAL = 5000;
 
-/** Build a srcset using query ?w=... (works with most CDNs; harmless if ignored) */
+/** Build a srcset using ?w= (many CDNs support; harmless if ignored) */
 const buildSrcSet = (url) => {
   if (!url) return undefined;
   const sep = url.includes('?') ? '&' : '?';
@@ -18,7 +18,7 @@ const buildSrcSet = (url) => {
   ].join(', ');
 };
 
-/** Match the actual visual width of your hero on common breakpoints */
+/** Match actual visual width of hero on common breakpoints */
 const HERO_SIZES = '(max-width: 599px) 100vw, (max-width: 991px) 90vw, 80vw';
 
 const HeroSlider = () => {
@@ -101,7 +101,7 @@ const HeroSlider = () => {
             src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&q=80"
             alt="Hero banner"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-            fetchPriority="high"    // ✅ fixed casing
+            fetchPriority="high"
             loading="eager"
             decoding="sync"
           />
@@ -136,10 +136,17 @@ const HeroSlider = () => {
               srcSet={buildSrcSet(imageUrl)}
               sizes={HERO_SIZES}
               alt={banner.title || 'Promotional banner'}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', cursor: banner.link ? 'pointer' : 'default' }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                cursor: banner.link ? 'pointer' : 'default',
+              }}
               loading={index === 0 ? 'eager' : 'lazy'}
               decoding={index === 0 ? 'sync' : 'async'}
-              fetchPriority={index === 0 ? 'high' : 'auto'}   // ✅ fixed casing
+              fetchPriority={index === 0 ? 'high' : 'auto'}
             />
           </div>
         );
