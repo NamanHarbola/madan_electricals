@@ -18,7 +18,7 @@ const ProfilePage = () => {
     const fetchProfile = async () => {
       try {
         const { data } = await API.get('/api/v1/profile');
-        setProfile(data);
+        setProfile(data || {});
       } catch {
         toast.error('Could not fetch profile.');
       }
@@ -45,19 +45,25 @@ const ProfilePage = () => {
     <div className="container" style={{ paddingTop: '100px', paddingBottom: '50px' }}>
       <h1 className="page-title">My Profile</h1>
 
-      <div className="profile-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px' }}>
+      <div
+        className="profile-layout"
+        style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '32px' }}
+      >
         {/* Profile card */}
-        <div
+        <section
           className="profile-details"
+          aria-labelledby="profile-details-title"
           style={{
             background: 'var(--color-surface)',
             padding: '24px',
-            borderRadius: 'var(--r-md, 10px)',
+            borderRadius: '10px',
             boxShadow: 'var(--shadow-sm)',
             border: '1px solid var(--color-border)',
           }}
         >
-          <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>User Details</h3>
+          <h3 id="profile-details-title" style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>
+            User Details
+          </h3>
           <p><strong>Name:</strong> {profile.name}</p>
           <p><strong>Email:</strong> {profile.email}</p>
 
@@ -73,11 +79,13 @@ const ProfilePage = () => {
           <Link to="/profile/edit" className="btn-full" style={{ marginTop: '24px' }}>
             Edit Profile
           </Link>
-        </div>
+        </section>
 
         {/* Orders */}
-        <div className="order-history">
-          <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>My Orders</h3>
+        <section className="order-history" aria-labelledby="order-history-title">
+          <h3 id="order-history-title" style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>
+            My Orders
+          </h3>
 
           {loading ? (
             <p>Loading orders…</p>
@@ -92,11 +100,11 @@ const ProfilePage = () => {
                     <table className="admin-table">
                       <thead>
                         <tr>
-                          <th>ID</th>
-                          <th>Date</th>
-                          <th>Total</th>
-                          <th>Status</th>
-                          <th></th>
+                          <th scope="col">ID</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Total</th>
+                          <th scope="col">Status</th>
+                          <th scope="col" aria-label="Actions"></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -114,7 +122,8 @@ const ProfilePage = () => {
                               <button
                                 onClick={() => setSelectedOrder(order)}
                                 className="btn-full"
-                                style={{ marginTop: 0, width: 'auto', padding: '6px 14px', fontSize: '.9rem' }}
+                                style={{ marginTop: '0px', width: 'auto', padding: '6px 14px', fontSize: '.9rem' }}
+                                type="button"
                               >
                                 View
                               </button>
@@ -130,19 +139,20 @@ const ProfilePage = () => {
               {/* Mobile cards */}
               <div className="order-cards mobile-only">
                 {orders.map((order) => (
-                  <div
+                  <article
                     key={order._id}
                     className="order-card"
                     style={{
                       background: 'var(--color-surface)',
                       border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--r-md, 10px)',
+                      borderRadius: '10px',
                       boxShadow: 'var(--shadow-sm)',
                       padding: '16px',
                       marginBottom: '16px',
                     }}
+                    aria-labelledby={`order-${order._id}-title`}
                   >
-                    <p><strong>Order ID:</strong> ...{order._id.substring(18)}</p>
+                    <p id={`order-${order._id}-title`}><strong>Order ID:</strong> ...{order._id.substring(18)}</p>
                     <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
                     <p><strong>Total:</strong> {formatCurrency(order.totalPrice)}</p>
                     <p>
@@ -153,15 +163,16 @@ const ProfilePage = () => {
                       onClick={() => setSelectedOrder(order)}
                       className="btn-full"
                       style={{ marginTop: '12px' }}
+                      type="button"
                     >
                       View Details
                     </button>
-                  </div>
+                  </article>
                 ))}
               </div>
             </>
           )}
-        </div>
+        </section>
       </div>
 
       {selectedOrder && (

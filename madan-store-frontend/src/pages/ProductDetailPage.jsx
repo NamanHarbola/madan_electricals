@@ -28,9 +28,12 @@ const ProductDetailPage = () => {
     try {
       const { data } = await API.get(`/api/v1/products/${id}`);
       // normalize images to array
-      const images = Array.isArray(data.images) && data.images.length
-        ? data.images
-        : (data.image ? [data.image] : []);
+      const images =
+        Array.isArray(data.images) && data.images.length
+          ? data.images
+          : data.image
+          ? [data.image]
+          : [];
       const normalized = { ...data, images };
       setProduct(normalized);
       setActiveIdx(0);
@@ -90,7 +93,10 @@ const ProductDetailPage = () => {
 
   if (err) {
     return (
-      <div className="container" style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-error)' }}>
+      <div
+        className="container"
+        style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-error)' }}
+      >
         {err}
       </div>
     );
@@ -111,15 +117,21 @@ const ProductDetailPage = () => {
     <>
       {/* Breadcrumbs */}
       <nav className="breadcrumbs" aria-label="Breadcrumb">
-        <Link to="/" className="breadcrumb-link">Home</Link>
+        <Link to="/" className="breadcrumb-link">
+          Home
+        </Link>
         {categoryName && (
           <>
             <span className="sep">›</span>
-            <Link to={categoryHref} className="breadcrumb-link">{categoryName}</Link>
+            <Link to={categoryHref} className="breadcrumb-link">
+              {categoryName}
+            </Link>
           </>
         )}
         <span className="sep">›</span>
-        <span className="breadcrumb-current" aria-current="page">{product.name}</span>
+        <span className="breadcrumb-current" aria-current="page">
+          {product.name}
+        </span>
       </nav>
 
       {/* Product detail */}
@@ -128,14 +140,27 @@ const ProductDetailPage = () => {
           {/* Gallery */}
           <section className="product-detail-gallery" aria-label="Product gallery">
             <div className="pd-main">
-              {mainImage && (
+              {mainImage ? (
                 <img
                   src={mainImage}
                   alt={product.name}
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
+                  sizes="(max-width: 992px) 100vw, 50vw"
                 />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  style={{
+                    display: 'grid',
+                    placeItems: 'center',
+                    height: '100%',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  No image
+                </div>
               )}
             </div>
 
@@ -156,6 +181,7 @@ const ProductDetailPage = () => {
                       alt={`${product.name} – thumbnail ${i + 1}`}
                       loading="lazy"
                       decoding="async"
+                      sizes="96px"
                     />
                   </button>
                 ))}
@@ -199,9 +225,7 @@ const ProductDetailPage = () => {
               <div className="pd-price">{formatCurrency(product.price)}</div>
               {product.mrp ? <div className="pd-mrp">{formatCurrency(product.mrp)}</div> : null}
               {product.mrp && product.mrp > product.price && (
-                <span className="pd-badge">
-                  Save {formatCurrency(product.mrp - product.price)}
-                </span>
+                <span className="pd-badge">Save {formatCurrency(product.mrp - product.price)}</span>
               )}
             </div>
 
@@ -209,29 +233,33 @@ const ProductDetailPage = () => {
             <ul className="pd-bullets">
               {(Array.isArray(product.keyFeatures) && product.keyFeatures.length
                 ? product.keyFeatures.slice(0, 5)
-                : (product.description ? product.description.split('\n').filter(Boolean).slice(0, 3) : [])
-              ).concat(
-                (!product.keyFeatures || product.keyFeatures.length === 0) && !product.description
-                  ? ['1-year warranty', 'Fast delivery', '7-day easy returns']
-                  : []
-              ).map((text, i) => (
-                <li key={i}>{text}</li>
-              ))}
+                : product.description
+                ? product.description.split('\n').filter(Boolean).slice(0, 3)
+                : []
+              )
+                .concat(
+                  (!product.keyFeatures || product.keyFeatures.length === 0) && !product.description
+                    ? ['1-year warranty', 'Fast delivery', '7-day easy returns']
+                    : []
+                )
+                .map((text, i) => (
+                  <li key={i}>{text}</li>
+                ))}
             </ul>
 
             {/* Quantity + CTA */}
             <div className="pd-cta-row">
               <div className="quantity-adjuster" aria-label="Quantity selector">
-                <button type="button" onClick={() => handleQuantityChange(-1)} aria-label="Decrease quantity">−</button>
+                <button type="button" onClick={() => handleQuantityChange(-1)} aria-label="Decrease quantity">
+                  −
+                </button>
                 <span aria-live="polite">{qty}</span>
-                <button type="button" onClick={() => handleQuantityChange(1)} aria-label="Increase quantity">+</button>
+                <button type="button" onClick={() => handleQuantityChange(1)} aria-label="Increase quantity">
+                  +
+                </button>
               </div>
 
-              <button
-                className="pd-cta"
-                onClick={() => addToCart(product, qty)}
-                disabled={product.stock === 0}
-              >
+              <button className="pd-cta" onClick={() => addToCart(product, qty)} disabled={product.stock === 0}>
                 {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
               </button>
             </div>
@@ -258,7 +286,9 @@ const ProductDetailPage = () => {
 
       {/* Reviews */}
       <section className="reviews-section">
-        <h2 className="section-heading" style={{ marginBottom: 20 }}>Reviews</h2>
+        <h2 className="section-heading" style={{ marginBottom: 20 }}>
+          Reviews
+        </h2>
 
         {(!product.reviews || product.reviews.length === 0) && <p>No reviews yet.</p>}
 
@@ -267,7 +297,9 @@ const ProductDetailPage = () => {
             <strong>{r.name}</strong>
             <p>Rating: {r.rating} / 5</p>
             <p>{r.comment}</p>
-            <p><small>{new Date(r.createdAt).toLocaleDateString()}</small></p>
+            <p>
+              <small>{new Date(r.createdAt).toLocaleDateString()}</small>
+            </p>
           </div>
         ))}
 
@@ -305,7 +337,9 @@ const ProductDetailPage = () => {
                 />
               </div>
 
-              <button type="submit" className="btn-full">Submit</button>
+              <button type="submit" className="btn-full">
+                Submit
+              </button>
             </form>
           ) : (
             <p>

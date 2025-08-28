@@ -30,22 +30,40 @@ const GridSkeleton = ({ cards = 6 }) => (
         ))}
       </div>
     </div>
+
+    {/* keyframes for skeleton shimmer (auto-disabled by prefers-reduced-motion) */}
+    <style>{`
+      @keyframes skeleton {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        [aria-hidden="true"] .product-image { animation: none !important; }
+      }
+    `}</style>
   </section>
 );
 
 const TrendingProducts = () => {
   const [products, setProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(8); // render a small batch first
+  const [visibleCount, setVisibleCount] = useState(8);
   const [loading, setLoading] = useState(true);
   const [readyToFetch, setReadyToFetch] = useState(false);
   const [error, setError] = useState('');
   const mountRef = useRef(true);
   const sentinelRef = useRef(null);
+  const toastedRef = useRef(false); // prevent duplicate error toasts
 
   // Only fetch when section is near viewport
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
+
+    // Fallback if IO is not supported
+    if (typeof IntersectionObserver === 'undefined') {
+      setReadyToFetch(true);
+      return;
+    }
 
     const io = new IntersectionObserver(
       (entries) => {
@@ -93,7 +111,10 @@ const TrendingProducts = () => {
         console.error('Could not load trending products.', err);
         if (mountRef.current) {
           setError('Could not load trending products.');
-          toast.error('Could not load trending products.');
+          if (!toastedRef.current) {
+            toast.error('Could not load trending products.');
+            toastedRef.current = true;
+          }
         }
       } finally {
         if (mountRef.current) setLoading(false);
@@ -106,20 +127,13 @@ const TrendingProducts = () => {
     };
   }, [readyToFetch]);
 
-  // If nothing to show
+  // Reserve space + skeleton until intersection happens
   if (!readyToFetch) {
-    // Reserve space + skeleton until intersection happens
     return (
       <>
-        <div ref={sentinelRef} />
+        {/* Give the sentinel a little height so it can enter viewport */}
+        <div ref={sentinelRef} style={{ height: 1 }} />
         <GridSkeleton cards={6} />
-        {/* keyframes for skeleton shimmer */}
-        <style>{`
-          @keyframes skeleton {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-          }
-        `}</style>
       </>
     );
   }
@@ -130,16 +144,24 @@ const TrendingProducts = () => {
 
   if (error || products.length === 0) {
     // Silent return keeps homepage clean when there are no trending items
-    return null;
+    return (
+      <>
+        {/* Offscreen status for SR users */}
+        <div className="sr-only" aria-live="polite">
+          {error ? error : 'No trending products available right now.'}
+        </div>
+        <div style={{ height: 1 }} />
+      </>
+    );
   }
 
   const canShowMore = visibleCount < products.length;
   const handleShowMore = () => setVisibleCount((v) => Math.min(v + 8, products.length));
 
   return (
-    <section id="trending" className="products-section">
+    <section id="trending" className="products-section" aria-labelledby="trending-heading">
       <div className="container">
-        <h2 className="section-heading">Trending Products</h2>
+        <h2 className="section-heading" id="trending-heading">Trending Products</h2>
 
         <div className="product-grid">
           {products.slice(0, visibleCount).map((product) => (
@@ -153,6 +175,7 @@ const TrendingProducts = () => {
               className="btn-full"
               style={{ width: 'auto', padding: '12px 20px' }}
               onClick={handleShowMore}
+              aria-label="Show more trending products"
             >
               Show more
             </button>

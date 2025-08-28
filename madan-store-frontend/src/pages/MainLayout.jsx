@@ -8,28 +8,40 @@ const MainLayout = () => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
 
-    // ✅ Use passive event listener for better performance
+    // Passive for smoother scrolling
     window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Run once on mount to set initial state (in case user reloads mid-page)
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    handleScroll(); // set initial state on mount
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <>
+      {/* Skip link for keyboard users */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       <Navbar scrolled={scrolled} />
-      <main role="main" id="main-content">
+
+      {/* Make main programmatically focusable so the skip link moves focus here */}
+      <main role="main" id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
+
       <Footer />
+
+      {/* Tiny style for skip link (kept here so it works without editing global CSS) */}
+      <style>{`
+        .skip-link{
+          position:fixed;
+          top:-40px; left:16px;
+          background:#000; color:#fff; padding:8px 12px;
+          border-radius:8px; z-index:2001; transition:top .2s ease;
+        }
+        .skip-link:focus{ top:10px; outline:2px solid var(--color-accent) }
+      `}</style>
     </>
   );
 };
