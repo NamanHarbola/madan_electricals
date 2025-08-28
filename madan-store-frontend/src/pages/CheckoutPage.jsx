@@ -10,11 +10,11 @@ const CheckoutPage = () => {
   const dispatch = useDispatch();
 
   const [isPlacing, setIsPlacing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("online"); // online / cod
+  const [paymentMethod, setPaymentMethod] = useState("online"); // "online" | "cod"
 
   // ---- Price Calculation ----
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const taxRate = 0.0255; // Razorpay 2.11% + GST 18% ≈ 2.55%
+  const taxRate = 0.0255; // Razorpay fee (2.11% + GST 18%) ≈ 2.55%
   const taxAmount = subtotal * taxRate;
   const finalTotal = subtotal + taxAmount;
 
@@ -37,13 +37,14 @@ const CheckoutPage = () => {
   const handleCOD = async () => {
     try {
       setIsPlacing(true);
+
       const orderItems = cart.map((item) => ({
         product: item._id,
         qty: item.qty,
         price: item.price,
       }));
 
-      const { data } = await API.post("/api/v1/orders", {
+      await API.post("/api/v1/orders", {
         orderItems,
         paymentMethod: "COD",
         totalPrice: finalTotal.toFixed(2),
@@ -61,6 +62,7 @@ const CheckoutPage = () => {
   // ---- Handle Razorpay Payment ----
   const handleOnlinePayment = async () => {
     setIsPlacing(true);
+
     const loaded = await loadRazorpay();
     if (!loaded) {
       toast.error("Payment SDK failed to load. Please try again.");
@@ -70,20 +72,22 @@ const CheckoutPage = () => {
 
     try {
       // 1. Create Razorpay Order (backend handles paise conversion)
-      const { data: { id } } = await API.post("/api/v1/payment/orders", {
-        amount: finalTotal, // in INR
+      const {
+        data: { id },
+      } = await API.post("/api/v1/payment/orders", {
+        amount: finalTotal, // send in INR (decimal)
       });
 
       // 2. Configure Razorpay Checkout
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount: Math.round(finalTotal * 100), // paise
+        amount: Math.round(finalTotal * 100), // convert to paise
         currency: "INR",
         name: "Madan Store",
-        description: "Payment for your order",
+        description: "Order Payment",
         order_id: id,
 
-        // 👇 Show correct amount in popup
+        // 👇 Show proper amount to customer
         display_amount: finalTotal.toFixed(2),
         display_currency: "INR",
 
@@ -91,8 +95,9 @@ const CheckoutPage = () => {
           try {
             // 3. Verify Payment
             const verifyRes = await API.post("/api/v1/payment/verify", response);
+
             if (verifyRes.data.success) {
-              // 4. Create Order in DB after payment success
+              // 4. Create order in DB after successful payment
               const orderItems = cart.map((item) => ({
                 product: item._id,
                 qty: item.qty,
@@ -183,7 +188,7 @@ const CheckoutPage = () => {
         </div>
       </div>
 
-      {/* Payment Method */}
+      {/* Payment Method Selection */}
       <div className="mb-6">
         <h2 className="font-medium mb-2">Choose Payment Method</h2>
         <div className="space-y-2">
@@ -208,13 +213,15 @@ const CheckoutPage = () => {
         </div>
       </div>
 
-      {/* Place Order */}
+      {/* Place Order Button */}
       <button
         onClick={placeOrder}
         disabled={isPlacing}
         className="w-full bg-teal-700 text-white py-3 rounded-lg hover:bg-teal-800 transition"
       >
-        {isPlacing ? "Processing..." : `Place Order (₹${finalTotal.toFixed(2)})`}
+        {isPlacing
+          ? "Processing..."
+          : `Place Order (₹${finalTotal.toFixed(2)})`}
       </button>
     </div>
   );
