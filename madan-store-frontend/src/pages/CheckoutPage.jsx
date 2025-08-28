@@ -75,21 +75,17 @@ const CheckoutPage = () => {
       const {
         data: { id },
       } = await API.post("/api/v1/payment/orders", {
-        amount: finalTotal, // send in INR (decimal)
+        amount: finalTotal.toFixed(2), // send INR (decimal)
       });
 
       // 2. Configure Razorpay Checkout
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount: Math.round(finalTotal * 100), // convert to paise
+        amount: finalTotal.toFixed(2), // just for display; backend already set paise
         currency: "INR",
         name: "Madan Store",
         description: "Order Payment",
         order_id: id,
-
-        // 👇 Show proper amount to customer
-        display_amount: finalTotal.toFixed(2),
-        display_currency: "INR",
 
         handler: async (response) => {
           try {
