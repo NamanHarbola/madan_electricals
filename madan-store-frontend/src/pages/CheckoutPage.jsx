@@ -18,6 +18,12 @@ const loadRazorpay = () =>
     document.body.appendChild(s);
   });
 
+// Razorpay Fee Config
+const RAZORPAY_FEE = 2.11; // %
+const GST = 18; // %
+const EFFECTIVE_DEDUCTION = RAZORPAY_FEE * (1 + GST / 100); // ≈2.4898%
+const GROSSUP_PERCENT = (EFFECTIVE_DEDUCTION / (100 - EFFECTIVE_DEDUCTION)) * 100; // ≈2.553%
+
 const CheckoutPage = () => {
   const { cartItems, cartSubtotal, clearCart, addToCart, decrementCartItem, removeFromCart } = useCart();
   const { userInfo } = useAuth();
@@ -57,8 +63,8 @@ const CheckoutPage = () => {
       handling = 20;
       total += handling;
     } else {
-      // 2.11% fee for online payment
-      tax = cartSubtotal * 0.0211;
+      // Apply gross-up % so seller gets clean subtotal after Razorpay fee+GST
+      tax = cartSubtotal * (GROSSUP_PERCENT / 100);
       total += tax;
     }
     return { finalTotal: total, handlingCharge: handling, taxAmount: tax };
@@ -375,7 +381,7 @@ const CheckoutPage = () => {
 
           {taxAmount > 0 && (
             <div className="summary-row">
-              <span>Tax (2.11%)</span>
+              <span>Payment Gateway Charge (2.55%)</span>
               <span>{formatCurrency(taxAmount)}</span>
             </div>
           )}
