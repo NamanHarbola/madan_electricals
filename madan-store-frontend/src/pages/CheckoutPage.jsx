@@ -1,401 +1,221 @@
 // src/pages/CheckoutPage.jsx
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../hooks/useAuth';
-import { toast } from 'react-toastify';
-import API from '../api';
-import formatCurrency from '../utils/formatCurrency';
-import { FaTrash } from 'react-icons/fa';
-
-const loadRazorpay = () =>
-  new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const s = document.createElement('script');
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.body.appendChild(s);
-  });
-
-// Razorpay Fee Config
-const RAZORPAY_FEE = 2.11; // %
-const GST = 18; // %
-const EFFECTIVE_DEDUCTION = RAZORPAY_FEE * (1 + GST / 100); // ≈2.4898%
-const GROSSUP_PERCENT = (EFFECTIVE_DEDUCTION / (100 - EFFECTIVE_DEDUCTION)) * 100; // ≈2.553%
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import API from "../utils/API";
+import { toast } from "react-toastify";
+import { clearCart } from "../redux/cartSlice";
 
 const CheckoutPage = () => {
-  const { cartItems, cartSubtotal, clearCart, addToCart, decrementCartItem, removeFromCart } = useCart();
-  const { userInfo } = useAuth();
-  const navigate = useNavigate();
+  const cart = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
 
-  const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD' | 'Razorpay'
   const [isPlacing, setIsPlacing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("online"); // online / cod
 
-  const [shippingInfo, setShippingInfo] = useState({
-    name: userInfo?.name || '',
-    landmark: userInfo?.shippingAddress?.landmark || '',
-    address: userInfo?.shippingAddress?.address || '',
-    city: userInfo?.shippingAddress?.city || '',
-    postalCode: userInfo?.shippingAddress?.postalCode || '',
-    country: 'India',
-  });
+  // ---- Price Calculation ----
+  const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const taxRate = 0.0255; // Razorpay 2.11% + GST 18% ≈ 2.55%
+  const taxAmount = subtotal * taxRate;
+  const finalTotal = subtotal + taxAmount;
 
-  useEffect(() => {
-    if (userInfo) {
-      setShippingInfo((prev) => ({
-        ...prev,
-        name: userInfo.name || prev.name,
-        landmark: userInfo.shippingAddress?.landmark || prev.landmark,
-        address: userInfo.shippingAddress?.address || prev.address,
-        city: userInfo.shippingAddress?.city || prev.city,
-        postalCode: userInfo.shippingAddress?.postalCode || prev.postalCode,
-      }));
-    }
-  }, [userInfo]);
-
-  const { finalTotal, handlingCharge, taxAmount } = useMemo(() => {
-    let handling = 0;
-    let tax = 0;
-    let total = cartSubtotal;
-
-    if (paymentMethod === 'COD') {
-      handling = 20;
-      total += handling;
-    } else {
-      // Apply gross-up % so seller gets clean subtotal after Razorpay fee+GST
-      tax = cartSubtotal * (GROSSUP_PERCENT / 100);
-      total += tax;
-    }
-    return { finalTotal: total, handlingCharge: handling, taxAmount: tax };
-  }, [cartSubtotal, paymentMethod]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setShippingInfo((prev) => ({ ...prev, [name]: value }));
+  // ---- Load Razorpay SDK ----
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   };
 
-  const placeOrder = useCallback(
-    async (paymentDetails = {}) => {
-      try {
-        const order = {
-          orderItems: cartItems.map((item) => ({ ...item, product: item._id })),
-          shippingInfo,
-          totalPrice: finalTotal,
-          paymentMethod,
-          ...paymentDetails,
-        };
+  // ---- Handle COD ----
+  const handleCOD = async () => {
+    try {
+      setIsPlacing(true);
+      const orderItems = cart.map((item) => ({
+        product: item._id,
+        qty: item.qty,
+        price: item.price,
+      }));
 
-        await API.post('/api/v1/orders', order);
-        toast.success('Order placed successfully!');
-        clearCart();
-        navigate('/');
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'Failed to place order.');
-      } finally {
-        setIsPlacing(false);
-      }
-    },
-    [cartItems, shippingInfo, finalTotal, paymentMethod, clearCart, navigate]
-  );
+      const { data } = await API.post("/api/v1/orders", {
+        orderItems,
+        paymentMethod: "COD",
+        totalPrice: finalTotal.toFixed(2),
+      });
 
-  const handlePayment = async () => {
+      toast.success("Order placed successfully (Cash on Delivery)");
+      dispatch(clearCart());
+    } catch (err) {
+      toast.error("COD Order failed");
+    } finally {
+      setIsPlacing(false);
+    }
+  };
+
+  // ---- Handle Razorpay Payment ----
+  const handleOnlinePayment = async () => {
     setIsPlacing(true);
     const loaded = await loadRazorpay();
     if (!loaded) {
-      toast.error('Payment SDK failed to load. Please try again.');
+      toast.error("Payment SDK failed to load. Please try again.");
       setIsPlacing(false);
       return;
     }
 
     try {
-      const { data: { id, amount } } = await API.post('/api/v1/payment/orders', {
-        amount: Math.round(finalTotal * 100),
+      // 1. Create Razorpay Order (backend handles paise conversion)
+      const { data: { id } } = await API.post("/api/v1/payment/orders", {
+        amount: finalTotal, // in INR
       });
 
-      const key = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_1234567890';
+      // 2. Configure Razorpay Checkout
       const options = {
-        key,
-        amount,
-        currency: 'INR',
-        name: 'Madan Store',
-        description: 'Payment for your order',
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount: Math.round(finalTotal * 100), // paise
+        currency: "INR",
+        name: "Madan Store",
+        description: "Payment for your order",
         order_id: id,
+
+        // 👇 Show correct amount in popup
+        display_amount: finalTotal.toFixed(2),
+        display_currency: "INR",
+
         handler: async (response) => {
           try {
-            const { data } = await API.post('/api/v1/payment/verify', response);
-            if (data.success) {
-              await placeOrder({
-                paymentResult: {
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                },
+            // 3. Verify Payment
+            const verifyRes = await API.post("/api/v1/payment/verify", response);
+            if (verifyRes.data.success) {
+              // 4. Create Order in DB after payment success
+              const orderItems = cart.map((item) => ({
+                product: item._id,
+                qty: item.qty,
+                price: item.price,
+              }));
+
+              await API.post("/api/v1/orders", {
+                orderItems,
+                paymentMethod: "Online",
+                totalPrice: finalTotal.toFixed(2),
                 isPaid: true,
-                paidAt: new Date().toISOString(),
+                paidAt: new Date(),
               });
+
+              toast.success("Payment successful & order placed!");
+              dispatch(clearCart());
             } else {
-              toast.error('Payment verification failed. Please contact support.');
-              setIsPlacing(false);
+              toast.error("Payment verification failed!");
             }
-          } catch {
-            toast.error('Payment verification failed.');
-            setIsPlacing(false);
+          } catch (error) {
+            toast.error("Error verifying payment!");
           }
         },
+
         prefill: {
-          name: shippingInfo.name,
-          email: userInfo?.email || '',
+          name: "Customer",
+          email: "customer@example.com",
+          contact: "9999999999",
         },
-        theme: { color: '#08747c' },
-        modal: {
-          ondismiss: () => setIsPlacing(false),
+        notes: {
+          address: "Madan Store Address",
+        },
+        theme: {
+          color: "#08747c",
         },
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch {
-      toast.error('Could not initiate payment.');
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (err) {
+      toast.error("Payment initiation failed");
+    } finally {
       setIsPlacing(false);
     }
   };
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    if (isPlacing) return;
-
-    // basic client validation
-    if (!shippingInfo.name || !shippingInfo.address || !shippingInfo.city || !shippingInfo.postalCode || !shippingInfo.country) {
-      toast.error('Please fill all required shipping fields.');
-      return;
-    }
-
-    if (paymentMethod === 'COD') {
-      setIsPlacing(true);
-      placeOrder({ isPaid: false });
+  // ---- Main Checkout Handler ----
+  const placeOrder = () => {
+    if (paymentMethod === "cod") {
+      handleCOD();
     } else {
-      handlePayment();
+      handleOnlinePayment();
     }
   };
 
-  // Empty cart
-  if (cartItems.length === 0) {
-    return (
-      <div className="container" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '50px' }}>
-        <h1 className="page-title">Your Cart is Empty</h1>
-        <Link to="/" className="btn-full" style={{ maxWidth: 220, margin: '12px auto 0' }}>
-          Go Shopping
-        </Link>
-      </div>
-    );
-  }
-
-  // Require login to check out (gentle prompt)
-  if (!userInfo) {
-    return (
-      <div className="container" style={{ textAlign: 'center', paddingTop: 60, paddingBottom: 60 }}>
-        <h1 className="page-title">Please Log In</h1>
-        <p style={{ marginTop: 8 }}>You need an account to complete checkout.</p>
-        <Link to="/login" className="btn-full" style={{ maxWidth: 220, margin: '16px auto 0' }}>
-          Log in
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="container" style={{ paddingTop: '40px', paddingBottom: '50px' }}>
-      <h1 className="page-title">Checkout</h1>
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+      <h1 className="text-2xl font-semibold mb-4">Checkout</h1>
 
-      <div className="cart-layout">
-        {/* Cart items */}
-        <div className="cart-items-list" aria-labelledby="cart-items-heading">
-          <h2 id="cart-items-heading" style={{ marginTop: 0 }}>Your Items</h2>
-          {cartItems.map((item) => (
-            <div key={item._id} className="cart-page-item">
-              <img
-                src={item.images?.[0] || item.image}
-                alt={item.name}
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="cart-item-info">
-                <Link to={`/product/${item._id}`}>{item.name}</Link>
-                <h4>{formatCurrency(item.price)}</h4>
-              </div>
-              <div className="cart-item-actions">
-                <div className="quantity-adjuster" role="group" aria-label={`Quantity for ${item.name}`}>
-                  <button type="button" onClick={() => decrementCartItem(item._id)} aria-label={`Decrease ${item.name} quantity`}>
-                    −
-                  </button>
-                  <span aria-live="polite">{item.qty}</span>
-                  <button type="button" onClick={() => addToCart(item, 1)} aria-label={`Increase ${item.name} quantity`}>
-                    +
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeFromCart(item._id)}
-                  className="btn-icon"
-                  aria-label={`Remove ${item.name} from cart`}
-                  title="Remove"
-                >
-                  <FaTrash />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Checkout form */}
-        <form onSubmit={submitHandler} className="checkout-summary" noValidate>
-          <h3 style={{ marginTop: 0 }}>Shipping Information</h3>
-
-          <div className="form-group">
-            <label htmlFor="name">Full Name</label>
-            <input
-              id="name"
-              name="name"
-              className="form-control"
-              value={shippingInfo.name}
-              onChange={handleChange}
-              autoComplete="name"
-              required
-            />
+      {/* Cart Items */}
+      <div className="border-b pb-4 mb-4">
+        {cart.map((item) => (
+          <div
+            key={item._id}
+            className="flex justify-between items-center mb-2"
+          >
+            <p>
+              {item.name} × {item.qty}
+            </p>
+            <p>₹{(item.price * item.qty).toFixed(2)}</p>
           </div>
-
-          <div className="form-group">
-            <label htmlFor="address">Address</label>
-            <input
-              id="address"
-              name="address"
-              className="form-control"
-              value={shippingInfo.address}
-              onChange={handleChange}
-              autoComplete="street-address"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="landmark">Landmark (Optional)</label>
-            <input
-              id="landmark"
-              name="landmark"
-              className="form-control"
-              value={shippingInfo.landmark}
-              onChange={handleChange}
-              autoComplete="address-line2"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="city">City</label>
-            <input
-              id="city"
-              name="city"
-              className="form-control"
-              value={shippingInfo.city}
-              onChange={handleChange}
-              autoComplete="address-level2"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="postalCode">Postal Code</label>
-            <input
-              id="postalCode"
-              name="postalCode"
-              className="form-control"
-              value={shippingInfo.postalCode}
-              onChange={handleChange}
-              autoComplete="postal-code"
-              inputMode="numeric"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="country">Country</label>
-            <input
-              id="country"
-              name="country"
-              className="form-control"
-              value={shippingInfo.country}
-              onChange={handleChange}
-              autoComplete="country-name"
-              required
-            />
-          </div>
-
-          <h3>Payment Method</h3>
-
-          {/* Accessible radios styled like your tiles */}
-          <div className="payment-method-options" role="radiogroup" aria-label="Payment method">
-            <label
-              className={`payment-option ${paymentMethod === 'COD' ? 'selected' : ''}`}
-              style={{ cursor: 'pointer' }}
-            >
-              <input
-                type="radio"
-                name="payment"
-                value="COD"
-                checked={paymentMethod === 'COD'}
-                onChange={() => setPaymentMethod('COD')}
-                style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
-                aria-label="Cash on Delivery"
-              />
-              <span style={{ fontWeight: 600, marginTop: 4 }}>Cash on Delivery</span>
-            </label>
-
-            <label
-              className={`payment-option ${paymentMethod === 'Razorpay' ? 'selected' : ''}`}
-              style={{ cursor: 'pointer' }}
-            >
-              <input
-                type="radio"
-                name="payment"
-                value="Razorpay"
-                checked={paymentMethod === 'Razorpay'}
-                onChange={() => setPaymentMethod('Razorpay')}
-                style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
-                aria-label="Pay Online"
-              />
-              <span style={{ fontWeight: 600, marginTop: 4 }}>Pay Online</span>
-            </label>
-          </div>
-
-          <div className="summary-row">
-            <span>Subtotal</span>
-            <span>{formatCurrency(cartSubtotal)}</span>
-          </div>
-
-          {handlingCharge > 0 && (
-            <div className="summary-row">
-              <span>Handling Charge</span>
-              <span>{formatCurrency(handlingCharge)}</span>
-            </div>
-          )}
-
-          {taxAmount > 0 && (
-            <div className="summary-row">
-              <span>Payment Gateway Charge (2.55%)</span>
-              <span>{formatCurrency(taxAmount)}</span>
-            </div>
-          )}
-
-          <div className="summary-row total" aria-live="polite">
-            <span>Total</span>
-            <span>{formatCurrency(finalTotal)}</span>
-          </div>
-
-          <button type="submit" className="btn-full" disabled={isPlacing} aria-busy={isPlacing}>
-            {isPlacing ? 'Processing…' : paymentMethod === 'COD' ? 'Place Order' : 'Pay Now'}
-          </button>
-        </form>
+        ))}
       </div>
+
+      {/* Price Details */}
+      <div className="space-y-2 mb-6">
+        <div className="flex justify-between">
+          <span>Subtotal</span>
+          <span>₹{subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Payment Gateway Fee (2.55%)</span>
+          <span>₹{taxAmount.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between font-bold text-lg border-t pt-2">
+          <span>Total</span>
+          <span>₹{finalTotal.toFixed(2)}</span>
+        </div>
+      </div>
+
+      {/* Payment Method */}
+      <div className="mb-6">
+        <h2 className="font-medium mb-2">Choose Payment Method</h2>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              value="online"
+              checked={paymentMethod === "online"}
+              onChange={() => setPaymentMethod("online")}
+            />
+            Online Payment (Razorpay)
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              value="cod"
+              checked={paymentMethod === "cod"}
+              onChange={() => setPaymentMethod("cod")}
+            />
+            Cash on Delivery
+          </label>
+        </div>
+      </div>
+
+      {/* Place Order */}
+      <button
+        onClick={placeOrder}
+        disabled={isPlacing}
+        className="w-full bg-teal-700 text-white py-3 rounded-lg hover:bg-teal-800 transition"
+      >
+        {isPlacing ? "Processing..." : `Place Order (₹${finalTotal.toFixed(2)})`}
+      </button>
     </div>
   );
 };
