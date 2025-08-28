@@ -11,19 +11,27 @@ const instance = new Razorpay({
 // @access  Private
 const createRazorpayOrder = async (req, res) => {
     try {
-        const baseAmount = req.body.amount; // amount you want to actually receive (in INR)
+        // 🟢 This should always come in INR (decimal) from frontend
+        const baseAmount = Number(req.body.amount); // e.g. 5.11
 
-        // Razorpay fee + GST
-        const feePercent = 2.11;   // Razorpay base fee %
-        const gstPercent = 18;     // GST %
-        const effectiveDeduction = feePercent * (1 + gstPercent / 100); // ≈ 2.4898%
-        const grossUpPercent = (effectiveDeduction / (100 - effectiveDeduction)) * 100; // ≈ 2.553%
+        if (!baseAmount || baseAmount <= 0) {
+            return res.status(400).json({ message: "Invalid amount" });
+        }
 
-        // Final amount after gross-up
-        const finalAmount = baseAmount * (1 + grossUpPercent / 100);
+        // === Razorpay Fees Calculation (for display only, not required by API) ===
+        const feePercent = 2.11; // Razorpay base fee %
+        const gstPercent = 18;   // GST %
+        const effectiveDeduction = feePercent * (1 + gstPercent / 100); // ≈ 2.49%
 
+        // How much extra user pays (so you still receive full baseAmount)
+        const grossUpPercent = (effectiveDeduction / (100 - effectiveDeduction)) * 100;
+
+        const taxAmount = (baseAmount * grossUpPercent) / 100;   // e.g. 0.02
+        const finalAmount = baseAmount + taxAmount;              // e.g. 5.13
+
+        // === Razorpay expects PAISA (integer) ===
         const options = {
-            amount: Math.round(finalAmount * 100), // in paise
+            amount: Math.round(finalAmount * 100), // 5.13 → 513 paise
             currency: "INR",
             receipt: `receipt_order_${Date.now()}`,
         };
@@ -31,7 +39,15 @@ const createRazorpayOrder = async (req, res) => {
         const order = await instance.orders.create(options);
         if (!order) return res.status(500).send("Some error occurred");
 
-        res.json(order);
+        // Send back tax + finalAmount so frontend can show breakdown
+        res.json({
+            ...order,
+            breakdown: {
+                baseAmount,
+                taxAmount: Number(taxAmount.toFixed(2)),
+                finalAmount: Number(finalAmount.toFixed(2)),
+            },
+        });
     } catch (error) {
         console.error("Razorpay Order Error:", error);
         res.status(500).send(error);
