@@ -1,5 +1,5 @@
 // src/pages/CategoryPage.jsx
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import API from '../api';
 import ProductCard from '../components/ProductCard';
@@ -35,10 +35,7 @@ const CategoryPage = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const abortRef = useRef(null);
 
-  const title = useMemo(
-    () => `${categoryName?.charAt(0).toUpperCase()}${categoryName?.slice(1)}`,
-    [categoryName]
-  );
+  const title = `${categoryName?.charAt(0).toUpperCase()}${categoryName?.slice(1)}`;
 
   const fetchProductsByCategory = async () => {
     // cancel any in-flight request
