@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const addressSchema = new mongoose.Schema({
-    address: { type: String, required: true }, // FIX: Changed 'street' to 'address'
+    address: { type: String, required: true },
     city: { type: String, required: true },
-    state: { type: String }, // Made 'state' optional for now
+    state: { type: String },
     postalCode: { type: String, required: true },
     country: { type: String, required: true, default: 'India' },
 });
@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String },
     isAdmin: { type: Boolean, required: true, default: false },
-    phone: { type: String },
+    phone: { type: String }, // <-- ADD THIS LINE
     shippingAddress: addressSchema,
     billingAddress: addressSchema,
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
