@@ -56,7 +56,7 @@ router.get('/google/callback', passport.authenticate('google', {
         token: token,
     };
     // Redirect to a frontend page with the user data/token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://madan-electricalsfrontend.vercel.app';
     res.redirect(`${frontendUrl}/auth/callback?user=${encodeURIComponent(JSON.stringify(user))}`);
 });
 
