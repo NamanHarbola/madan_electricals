@@ -26,10 +26,9 @@ const CheckoutPage = () => {
         try {
           const { data } = await API.get('/api/v1/profile');
           if (data && data.shippingAddress && data.shippingAddress.address) {
-            // Add the user's name to the shipping info object
             setShippingInfo({ ...data.shippingAddress, name: data.name });
           } else {
-             setShippingInfo({ name: data.name }); // Still set name if no address
+             setShippingInfo({ name: data.name });
           }
         } catch (error) {
           toast.error("Could not fetch your shipping address.");
@@ -45,7 +44,7 @@ const CheckoutPage = () => {
     let tax = 0;
     let cod = 0;
     if (paymentMethod === 'online') tax = cartSubtotal * 0.0255;
-    else if (paymentMethod === 'cod') cod = 20;
+    else if (paymentMethod === 'COD') cod = 20; // Match uppercase state
     return { finalTotal: cartSubtotal + tax + cod, taxAmount: tax, codFee: cod };
   }, [cartSubtotal, paymentMethod]);
 
@@ -68,7 +67,7 @@ const CheckoutPage = () => {
           shippingInfo,
           totalPrice: finalTotal,
           paymentMethod,
-          shippingPrice: paymentMethod === 'cod' ? codFee : 0,
+          shippingPrice: paymentMethod === 'COD' ? codFee : 0,
       };
   };
 
@@ -147,7 +146,7 @@ const CheckoutPage = () => {
 
   const placeOrder = () => {
     if (cartItems.length === 0) return toast.error("Your cart is empty.");
-    if (paymentMethod === "cod") handleCOD();
+    if (paymentMethod === "COD") handleCOD();
     else handleOnlinePayment();
   };
 
@@ -165,7 +164,6 @@ const CheckoutPage = () => {
             ) : (
             <div className="cart-layout">
                 <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
-                    {/* --- SHIPPING ADDRESS DISPLAY --- */}
                     <div className="checkout-summary">
                         <h2 style={{marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px'}}><FaMapMarkerAlt /> Shipping Address</h2>
                         {shippingInfo?.address ? (
@@ -210,7 +208,7 @@ const CheckoutPage = () => {
                     <div className="space-y-2 mb-6">
                         <div className="summary-row"><span>Subtotal</span><span>{formatCurrency(cartSubtotal)}</span></div>
                         {paymentMethod === 'online' && (<div className="summary-row"><span>Convenience Fee (2.55%)</span><span>{formatCurrency(taxAmount)}</span></div>)}
-                        {paymentMethod === 'cod' && (<div className="summary-row"><span>Cash on Delivery Fee</span><span>{formatCurrency(codFee)}</span></div>)}
+                        {paymentMethod === 'COD' && (<div className="summary-row"><span>Cash on Delivery Fee</span><span>{formatCurrency(codFee)}</span></div>)}
                         <div className="summary-row total"><span>Total</span><span>{formatCurrency(finalTotal)}</span></div>
                     </div>
 
@@ -221,8 +219,8 @@ const CheckoutPage = () => {
                                 <input type="radio" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} name="paymentMethod" style={{display: 'none'}}/>
                                 Online Payment
                             </label>
-                            <label className={`payment-option ${paymentMethod === 'cod' ? 'selected' : ''}`}>
-                                <input type="radio" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} name="paymentMethod" style={{display: 'none'}}/>
+                            <label className={`payment-option ${paymentMethod === 'COD' ? 'selected' : ''}`}>
+                                <input type="radio" value="COD" checked={paymentMethod === "COD"} onChange={() => setPaymentMethod("COD")} name="paymentMethod" style={{display: 'none'}}/>
                                 Cash on Delivery
                             </label>
                         </div>
