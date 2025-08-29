@@ -22,6 +22,7 @@ const orderSchema = new mongoose.Schema({
     ],
     shippingInfo: {
         name: { type: String, required: true },
+        phone: { type: String, required: true }, // <-- ADD THIS LINE
         landmark: { type: String },
         address: { type: String, required: true },
         city: { type: String, required: true },
@@ -36,8 +37,7 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        // **FIX:** Accept both 'COD' and 'cod' to be safe
-        enum: ['Razorpay', 'COD', 'cod'], 
+        enum: ['Razorpay', 'COD', 'cod'],
         default: 'COD'
     },
     isPaid: {
