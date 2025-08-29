@@ -20,19 +20,12 @@ const createRazorpayOrder = async (req, res) => {
             return res.status(400).json({ message: "Invalid amount" });
         }
 
-        // --- Convenience Fee Calculation (Passing Razorpay fees to customer) ---
-        // This logic ensures you receive the full 'baseAmount' after fees are deducted.
-        const feePercent = 2.11; // **CORRECTED:** Using the precise 2.11% fee
-        const gstPercent = 18;  // GST on the fee
+        // --- CORRECTED: Additive Fee Calculation ---
+        // This logic adds a straight 2.55% fee on top of the base amount.
+        const feePercentage = 2.55; // The exact percentage you want to charge
 
-        // Calculate the total fee percentage including GST (2.11 * 1.18 = 2.4898%)
-        const feeWithGst = feePercent * (1 + gstPercent / 100);
-
-        // To ensure you receive the full baseAmount, we calculate the gross amount to charge the customer.
-        // The formula is: GrossAmount = BaseAmount / (1 - FeePercentage)
-        const finalAmount = baseAmount / (1 - (feeWithGst / 100));
-
-        const convenienceFee = finalAmount - baseAmount;
+        const convenienceFee = baseAmount * (feePercentage / 100);
+        const finalAmount = baseAmount + convenienceFee;
 
         // Razorpay expects the amount in the smallest currency unit (paise)
         const amountInPaise = Math.round(finalAmount * 100);
@@ -68,7 +61,7 @@ const verifyPayment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+        const hmac = crypto.createHmac('sha265', process.env.RAZORPAY_KEY_SECRET);
         hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
         const generated_signature = hmac.digest('hex');
 
