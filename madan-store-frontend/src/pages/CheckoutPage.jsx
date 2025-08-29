@@ -14,13 +14,14 @@ const CheckoutPage = () => {
   const [isPlacing, setIsPlacing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("online"); // "online" | "cod"
 
-  // ---- Price & Fee Calculation ----
+  // ---- Price & Fee Calculation for DISPLAY ONLY ----
   const { finalTotal, taxAmount, codFee } = useMemo(() => {
     let tax = 0;
     let cod = 0;
 
     if (paymentMethod === 'online') {
-      tax = cartSubtotal * 0.0255; // 2.55% tax for Razorpay
+      // This is a simple approximation for display. The final amount comes from the backend.
+      tax = cartSubtotal * 0.024; 
     } else if (paymentMethod === 'cod') {
       cod = 20; // ₹20 fee for Cash on Delivery
     }
@@ -85,53 +86,53 @@ const CheckoutPage = () => {
     }
 
     try {
-      // 1. Create Razorpay Order
-      const {
-        data: { id: order_id },
-      } = await API.post("/api/v1/payment/orders", {
-        amount: finalTotal,
+      // 1. Create Razorpay Order by sending the clean subtotal
+      const { data: orderData } = await API.post("/api/v1/payment/orders", {
+        amount: cartSubtotal,
       });
-
-      // 2. Configure Razorpay Checkout
+      
+      const { id: order_id, breakdown } = orderData;
+      
+      // 2. Configure Razorpay Checkout using the final amount from the backend
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
-        amount: Math.round(finalTotal * 100),
+        amount: Math.round(breakdown.finalAmount * 100), // Use the precise final amount from backend
         currency: "INR",
         name: "Madan Store",
         description: "Order Payment",
         order_id: order_id,
 
         handler: async (response) => {
-          try {
-            // 3. Verify Payment
-            const verifyRes = await API.post("/api/v1/payment/verify", response);
-
-            if (verifyRes.data.success) {
-              // 4. Create order in DB after successful payment
-              const orderItems = cartItems.map((item) => ({
-                ...item,
-                product: item._id,
-              }));
-
-              await API.post("/api/v1/orders", {
-                orderItems,
-                paymentMethod: "Razorpay",
-                totalPrice: finalTotal,
-                isPaid: true,
-                paidAt: new Date(),
-                 // Add shippingInfo if you have a form for it
-              });
-
-              toast.success("Payment successful & order placed!");
-              clearCart();
-              navigate('/');
-            } else {
-              toast.error("Payment verification failed!");
+            try {
+              // 3. Verify Payment
+              const verifyRes = await API.post("/api/v1/payment/verify", response);
+  
+              if (verifyRes.data.success) {
+                // 4. Create order in DB after successful payment
+                const orderItems = cartItems.map((item) => ({
+                  ...item,
+                  product: item._id,
+                }));
+  
+                await API.post("/api/v1/orders", {
+                  orderItems,
+                  paymentMethod: "Razorpay",
+                  totalPrice: breakdown.finalAmount, // Use final amount from backend
+                  isPaid: true,
+                  paidAt: new Date(),
+                   // Add shippingInfo if you have a form for it
+                });
+  
+                toast.success("Payment successful & order placed!");
+                clearCart();
+                navigate('/');
+              } else {
+                toast.error("Payment verification failed!");
+              }
+            } catch (error) {
+              toast.error("Error verifying payment!");
             }
-          } catch (error) {
-            toast.error("Error verifying payment!");
-          }
-        },
+          },
 
         prefill: {
           name: "Customer",
@@ -148,6 +149,10 @@ const CheckoutPage = () => {
 
       const paymentObject = new window.Razorpay(options);
       paymentObject.open();
+      paymentObject.on('payment.failed', function (response){
+        toast.error("Payment failed. Please try again.");
+      });
+
     } catch (err) {
       toast.error("Payment initiation failed");
     } finally {
@@ -214,7 +219,7 @@ const CheckoutPage = () => {
                 </div>
                 {paymentMethod === 'online' && (
                     <div className="summary-row text-sm text-gray-600">
-                        <span>Payment Gateway Fee (2.55%)</span>
+                        <span>Convenience Fee (approx.)</span>
                         <span>{formatCurrency(taxAmount)}</span>
                     </div>
                 )}
