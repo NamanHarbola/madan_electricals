@@ -1,21 +1,34 @@
 // src/pages/CheckoutPage.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useCart } from '../context/CartContext.jsx';
 import API from '../api';
 import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { FaTrash } from 'react-icons/fa';
+import formatCurrency from "../utils/formatCurrency.js";
 
 const CheckoutPage = () => {
-  const { cartItems, cartSubtotal, clearCart } = useCart();
+  const { cartItems, cartSubtotal, clearCart, addToCart, decrementCartItem, removeFromCart } = useCart();
   const navigate = useNavigate();
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("online"); // "online" | "cod"
 
-  // ---- Price Calculation ----
-  const taxRate = 0.0255; // Razorpay fee (2.11% + GST 18%) ≈ 2.55%
-  const taxAmount = cartSubtotal * taxRate;
-  const finalTotal = cartSubtotal + taxAmount;
+  // ---- Price & Fee Calculation ----
+  const { finalTotal, taxAmount, codFee } = useMemo(() => {
+    let tax = 0;
+    let cod = 0;
+
+    if (paymentMethod === 'online') {
+      tax = cartSubtotal * 0.0255; // 2.55% tax for Razorpay
+    } else if (paymentMethod === 'cod') {
+      cod = 20; // ₹20 fee for Cash on Delivery
+    }
+
+    const total = cartSubtotal + tax + cod;
+    return { finalTotal: total, taxAmount: tax, codFee: cod };
+  }, [cartSubtotal, paymentMethod]);
+
 
   // ---- Load Razorpay SDK ----
   const loadRazorpay = () => {
@@ -38,14 +51,15 @@ const CheckoutPage = () => {
       setIsPlacing(true);
 
       const orderItems = cartItems.map((item) => ({
-        ...item, // Pass the whole item
+        ...item,
         product: item._id,
       }));
 
       await API.post("/api/v1/orders", {
         orderItems,
         paymentMethod: "COD",
-        totalPrice: finalTotal.toFixed(2),
+        totalPrice: finalTotal,
+        shippingPrice: codFee,
         // Add shippingInfo if you have a form for it
       });
 
@@ -75,13 +89,13 @@ const CheckoutPage = () => {
       const {
         data: { id: order_id },
       } = await API.post("/api/v1/payment/orders", {
-        amount: finalTotal.toFixed(2),
+        amount: finalTotal,
       });
 
       // 2. Configure Razorpay Checkout
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
-        amount: (finalTotal * 100).toFixed(0),
+        amount: Math.round(finalTotal * 100),
         currency: "INR",
         name: "Madan Store",
         description: "Order Payment",
@@ -101,11 +115,11 @@ const CheckoutPage = () => {
 
               await API.post("/api/v1/orders", {
                 orderItems,
-                paymentMethod: "Online",
-                totalPrice: finalTotal.toFixed(2),
+                paymentMethod: "Razorpay",
+                totalPrice: finalTotal,
                 isPaid: true,
                 paidAt: new Date(),
-                // Add shippingInfo if you have a form for it
+                 // Add shippingInfo if you have a form for it
               });
 
               toast.success("Payment successful & order placed!");
@@ -155,82 +169,101 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="container" style={{ paddingTop: '100px', paddingBottom: '50px', maxWidth: '768px', margin: 'auto' }}>
-      <h1 className="page-title">Checkout</h1>
+    <div className="container" style={{ paddingTop: '100px', paddingBottom: '50px', maxWidth: '1024px', margin: 'auto' }}>
+      <h1 className="page-title">Shopping Cart</h1>
 
       {cartItems.length === 0 ? (
-        <p>Your cart is empty.</p>
+        <div style={{textAlign: 'center', padding: '40px 0'}}>
+            <p>Your cart is empty.</p>
+            <Link to="/" className="btn-full" style={{marginTop: 12, width: 'auto', display: 'inline-block'}}>Continue Shopping</Link>
+        </div>
       ) : (
       <div className="cart-layout">
         <div className="cart-items-list">
-            {/* Cart Items */}
-            <div className="border-b pb-4 mb-4">
-                {cartItems.map((item) => (
-                <div
-                    key={item._id}
-                    className="flex justify-between items-center mb-2"
-                >
-                    <p>
-                    {item.name} × {item.qty}
-                    </p>
-                    <p>₹{(item.price * item.qty).toFixed(2)}</p>
+            <h2 style={{marginTop: 0}}>Your Items</h2>
+            {cartItems.map((item) => (
+                <div key={item._id} className="cart-page-item">
+                    <img src={item.images[0]} alt={item.name} />
+                    <div className="cart-item-info">
+                        <Link to={`/product/${item._id}`}>{item.name}</Link>
+                        <h4>{formatCurrency(item.price)}</h4>
+                        <div className="cart-item-actions">
+                            <div className="quantity-adjuster">
+                                <button onClick={() => decrementCartItem(item._id)} aria-label="Decrease quantity">
+                                −
+                                </button>
+                                <span>{item.qty}</span>
+                                <button onClick={() => addToCart(item, 1)} aria-label="Increase quantity">
+                                +
+                                </button>
+                            </div>
+                             <button onClick={() => removeFromCart(item._id)} className="btn-icon" aria-label="Remove item">
+                                <FaTrash />
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                ))}
-            </div>
+            ))}
         </div>
-        <div className="checkout-summary">
-            {/* Price Details */}
+        <div className="checkout-summary cart-summary">
+            <h2 style={{marginTop: 0}}>Order Summary</h2>
             <div className="space-y-2 mb-6">
                 <div className="summary-row">
-                <span>Subtotal</span>
-                <span>₹{cartSubtotal.toFixed(2)}</span>
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(cartSubtotal)}</span>
                 </div>
-                <div className="summary-row text-sm text-gray-600">
-                <span>Payment Gateway Fee (2.55%)</span>
-                <span>₹{taxAmount.toFixed(2)}</span>
-                </div>
+                {paymentMethod === 'online' && (
+                    <div className="summary-row text-sm text-gray-600">
+                        <span>Payment Gateway Fee (2.55%)</span>
+                        <span>{formatCurrency(taxAmount)}</span>
+                    </div>
+                )}
+                {paymentMethod === 'cod' && (
+                     <div className="summary-row text-sm text-gray-600">
+                        <span>Cash on Delivery Fee</span>
+                        <span>{formatCurrency(codFee)}</span>
+                    </div>
+                )}
                 <div className="summary-row total">
-                <span>Total</span>
-                <span>₹{finalTotal.toFixed(2)}</span>
+                    <span>Total</span>
+                    <span>{formatCurrency(finalTotal)}</span>
                 </div>
             </div>
 
-            {/* Payment Method Selection */}
             <div className="mb-6">
-                <h2 className="font-medium mb-2">Choose Payment Method</h2>
+                <h3 style={{marginBottom: 12}}>Choose Payment Method</h3>
                 <div className="payment-method-options">
-                <label className={`payment-option ${paymentMethod === 'online' ? 'selected' : ''}`}>
-                    <input
-                    type="radio"
-                    value="online"
-                    checked={paymentMethod === "online"}
-                    onChange={() => setPaymentMethod("online")}
-                    name="paymentMethod"
-                    />
-                    Online Payment (Razorpay)
-                </label>
-                <label className={`payment-option ${paymentMethod === 'cod' ? 'selected' : ''}`}>
-                    <input
-                    type="radio"
-                    value="cod"
-                    checked={paymentMethod === "cod"}
-                    onChange={() => setPaymentMethod("cod")}
-                    name="paymentMethod"
-                    />
-                    Cash on Delivery
-                </label>
+                    <label className={`payment-option ${paymentMethod === 'online' ? 'selected' : ''}`}>
+                        <input
+                            type="radio"
+                            value="online"
+                            checked={paymentMethod === "online"}
+                            onChange={() => setPaymentMethod("online")}
+                            name="paymentMethod"
+                            style={{display: 'none'}}
+                        />
+                        Online Payment
+                    </label>
+                    <label className={`payment-option ${paymentMethod === 'cod' ? 'selected' : ''}`}>
+                        <input
+                            type="radio"
+                            value="cod"
+                            checked={paymentMethod === "cod"}
+                            onChange={() => setPaymentMethod("cod")}
+                            name="paymentMethod"
+                            style={{display: 'none'}}
+                        />
+                        Cash on Delivery
+                    </label>
                 </div>
             </div>
 
-            {/* Place Order Button */}
             <button
                 onClick={placeOrder}
                 disabled={isPlacing}
                 className="btn-full"
             >
-                {isPlacing
-                ? "Processing..."
-                : `Place Order (₹${finalTotal.toFixed(2)})`}
+                {isPlacing ? "Processing..." : `Place Order`}
             </button>
         </div>
       </div>
