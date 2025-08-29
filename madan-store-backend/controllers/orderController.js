@@ -62,7 +62,7 @@ const createOrder = async (req, res) => {
             orderItems: orderItems.map(item => ({
                 name: item.name,
                 qty: item.qty,
-                image: item.images[0],
+                image: item.image,
                 price: item.price,
                 product: item._id
             })),
