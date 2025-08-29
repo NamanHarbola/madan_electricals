@@ -14,14 +14,14 @@ const CheckoutPage = () => {
   const [isPlacing, setIsPlacing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("online"); // "online" | "cod"
 
-  // ---- Price & Fee Calculation for DISPLAY ONLY ----
+  // ---- Price & Fee Calculation for DISPLAY ----
   const { finalTotal, taxAmount, codFee } = useMemo(() => {
     let tax = 0;
     let cod = 0;
 
     if (paymentMethod === 'online') {
-      // This is a simple approximation for display. The final amount comes from the backend.
-      tax = cartSubtotal * 0.024; 
+      // **CORRECTED:** Use the exact same 2.55% fee for display consistency
+      tax = cartSubtotal * 0.0255; 
     } else if (paymentMethod === 'cod') {
       cod = 20; // ₹20 fee for Cash on Delivery
     }
@@ -219,7 +219,7 @@ const CheckoutPage = () => {
                 </div>
                 {paymentMethod === 'online' && (
                     <div className="summary-row text-sm text-gray-600">
-                        <span>Convenience Fee (approx.)</span>
+                        <span>Convenience Fee (2.55%)</span>
                         <span>{formatCurrency(taxAmount)}</span>
                     </div>
                 )}
