@@ -4,7 +4,8 @@ const User = require('../models/User');
 
 const getOrders = async (req, res) => {
     try {
-        const orders = await Order.find({}).populate('user', 'name email').sort({ createdAt: -1 });
+        // **UPDATED:** Added 'phone' to the list of fields to populate.
+        const orders = await Order.find({}).populate('user', 'name email phone').sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
         console.error(error);
@@ -47,16 +48,6 @@ const createOrder = async (req, res) => {
         if (!orderItems || orderItems.length === 0) {
             return res.status(400).json({ message: 'No order items' });
         }
-        
-        if (!shippingInfo || !shippingInfo.address) {
-            return res.status(400).json({ message: 'Shipping information is missing.' });
-        }
-        
-        const finalShippingInfo = {
-            name: shippingInfo.name || req.user.name,
-            phone: shippingInfo.phone || req.user.phone,
-            ...shippingInfo
-        };
 
         const isPaid = paymentMethod === 'Razorpay';
         const status = isPaid ? 'Paid' : 'Pending';
@@ -70,7 +61,7 @@ const createOrder = async (req, res) => {
                 price: item.price,
                 product: item._id
             })),
-            shippingInfo: finalShippingInfo,
+            shippingInfo,
             shippingPrice,
             totalPrice,
             paymentMethod,
@@ -81,16 +72,11 @@ const createOrder = async (req, res) => {
 
         const createdOrder = await order.save();
         
-        // **REMOVED:** The problematic logic that was overwriting user's address is now gone.
-
         res.status(201).json(createdOrder);
 
     } catch (error) {
-        console.error("Error creating order:", error);
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({ message: `Validation Error: ${error.message}` });
-        }
-        res.status(500).json({ message: 'Server Error Creating Order' });
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
     }
 };
 
@@ -101,20 +87,3 @@ const updateOrderStatus = async (req, res) => {
         if (order) {
             const { status } = req.body;
             order.status = status;
-
-            if (status === 'Paid' && !order.isPaid) {
-                order.isPaid = true;
-                order.paidAt = Date.now();
-            }
-
-            const updatedOrder = await order.save();
-            res.json(updatedOrder);
-        } else {
-            res.status(404).json({ message: 'Order not found' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: 'Server error updating status' });
-    }
-};
-
-module.exports = { getOrders, getOrderById, getMyOrders, createOrder, updateOrderStatus };
