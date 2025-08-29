@@ -12,6 +12,7 @@ const getProfile = async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
+            phone: user.phone, // <-- ADD THIS LINE
             shippingAddress: user.shippingAddress,
         });
     } else {
@@ -28,6 +29,8 @@ const updateProfile = async (req, res) => {
     if (user) {
         user.name = req.body.name || user.name;
         user.email = req.body.email || user.email;
+        user.phone = req.body.phone || user.phone; // <-- ADD THIS LINE
+
         if (req.body.shippingAddress) {
             user.shippingAddress = req.body.shippingAddress;
         }
@@ -38,6 +41,7 @@ const updateProfile = async (req, res) => {
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,
+            phone: updatedUser.phone, // <-- ADD THIS LINE
             shippingAddress: updatedUser.shippingAddress,
         });
     } else {
@@ -45,4 +49,4 @@ const updateProfile = async (req, res) => {
     }
 };
 
-module.exports = { getProfile, updateProfile }; 
+module.exports = { getProfile, updateProfile };
