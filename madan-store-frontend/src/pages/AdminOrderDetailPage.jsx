@@ -14,7 +14,6 @@ const AdminOrderDetailPage = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // fetch order
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -64,7 +63,6 @@ const AdminOrderDetailPage = () => {
           gap: 20,
         }}
       >
-        {/* Items */}
         <section
           aria-labelledby="order-items-heading"
           className="order-items-summary"
@@ -88,15 +86,7 @@ const AdminOrderDetailPage = () => {
                   className="order-item-card"
                   style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, border: '1px solid var(--color-border)', borderRadius: 8, background: 'var(--color-surface)' }}
                 >
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    loading="lazy"
-                    decoding="async"
-                    width={64}
-                    height={64}
-                    style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }}
-                  />
+                  <img src={item.image} alt={item.name} loading="lazy" decoding="async" width={64} height={64} style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }} />
                   <div>
                     <strong style={{ display: 'block' }}>{item.name}</strong>
                     <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>
@@ -109,7 +99,6 @@ const AdminOrderDetailPage = () => {
           )}
         </section>
 
-        {/* Shipping + Summary */}
         <aside
           aria-labelledby="shipping-summary-heading"
           className="order-shipping-summary"
@@ -125,50 +114,27 @@ const AdminOrderDetailPage = () => {
 
           <div style={{ marginBottom: 12 }}>
             <h3 style={{ margin: '0 0 8px' }}>Shipping Address</h3>
-            <p style={{ margin: '0 0 4px' }}>
-              <strong>Name:</strong> {shippingInfo?.name || '—'}
-            </p>
-            <p style={{ margin: '0 0 4px' }}>
-              <strong>Address:</strong> {shippingInfo?.address || '—'}
-            </p>
-            {shippingInfo?.landmark && (
-              <p style={{ margin: '0 0 4px' }}>
-                <strong>Landmark:</strong> {shippingInfo.landmark}
-              </p>
-            )}
-            <p style={{ margin: '0 0 4px' }}>
-              <strong>City/Pin:</strong> {shippingInfo?.city || '—'}{shippingInfo?.postalCode ? `, ${shippingInfo.postalCode}` : ''}
-            </p>
-            <p style={{ margin: 0 }}>
-              <strong>Country:</strong> {shippingInfo?.country || '—'}
-            </p>
+            <p style={{ margin: '0 0 4px' }}><strong>Name:</strong> {shippingInfo?.name || '—'}</p>
+            {/* --- NEW PHONE NUMBER DISPLAY --- */}
+            <p style={{ margin: '0 0 4px' }}><strong>Phone:</strong> {shippingInfo?.phone || '—'}</p>
+            <p style={{ margin: '0 0 4px' }}><strong>Address:</strong> {shippingInfo?.address || '—'}</p>
+            {shippingInfo?.landmark && (<p style={{ margin: '0 0 4px' }}><strong>Landmark:</strong> {shippingInfo.landmark}</p>)}
+            <p style={{ margin: '0 0 4px' }}><strong>City/Pin:</strong> {shippingInfo?.city || '—'}{shippingInfo?.postalCode ? `, ${shippingInfo.postalCode}` : ''}</p>
+            <p style={{ margin: 0 }}><strong>Country:</strong> {shippingInfo?.country || '—'}</p>
           </div>
 
           <hr style={{ border: 0, borderTop: '1px solid var(--color-border)', margin: '12px 0' }} />
 
           <div>
             <h3 style={{ margin: '0 0 8px' }}>Order Summary</h3>
-            <p style={{ margin: '0 0 6px' }}>
-              <strong>Total Price:</strong> {formatCurrency(totalPrice)}
-            </p>
-            <p style={{ margin: 0 }}>
-              <strong>Status:</strong>{' '}
-              <span className={`status-badge ${String(status).toLowerCase()}`}>
-                {status}
-              </span>
-            </p>
+            <p style={{ margin: '0 0 6px' }}><strong>Total Price:</strong> {formatCurrency(totalPrice)}</p>
+            <p style={{ margin: 0 }}><strong>Status:</strong> <span className={`status-badge ${String(status).toLowerCase()}`}>{status}</span></p>
           </div>
         </aside>
       </div>
 
-      {/* Responsive enhancement: two-column on large screens */}
       <style>{`
-        @media (min-width: 992px) {
-          .order-details-layout {
-            grid-template-columns: 2fr 1fr;
-            align-items: start;
-          }
-        }
+        @media (min-width: 992px) { .order-details-layout { grid-template-columns: 2fr 1fr; align-items: start; } }
       `}</style>
     </div>
   );
