@@ -65,7 +65,7 @@ const AdminOrdersPage = () => {
             <tr>
               <th scope="col">Order ID</th>
               <th scope="col">Customer</th>
-              <th scope="col">Phone</th> {/* <-- ADDED COLUMN HEADER */}
+              <th scope="col">Phone</th>
               <th scope="col">Date</th>
               <th scope="col">Total</th>
               <th scope="col">Paid</th>
@@ -78,7 +78,7 @@ const AdminOrdersPage = () => {
             {orders.map((order) => {
               const shortId = order?._id ? `...${order._id.slice(-6)}` : '—';
               const customer = order?.user?.name || 'N/A';
-              const phone = order?.user?.phone || 'N/A'; // <-- GET PHONE NUMBER
+              const phone = order?.user?.phone || 'N/A';
               const dateStr = order?.createdAt
                 ? new Date(order.createdAt).toLocaleDateString()
                 : '—';
@@ -90,7 +90,7 @@ const AdminOrdersPage = () => {
                 <tr key={order?._id || Math.random()}>
                   <td data-label="Order ID">{shortId}</td>
                   <td data-label="Customer">{customer}</td>
-                  <td data-label="Phone">{phone}</td> {/* <-- DISPLAY PHONE NUMBER */}
+                  <td data-label="Phone">{phone}</td>
                   <td data-label="Date">{dateStr}</td>
                   <td data-label="Total">{total}</td>
                   <td data-label="Paid">{paid}</td>
