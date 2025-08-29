@@ -19,16 +19,19 @@ const CheckoutPage = () => {
   const [shippingInfo, setShippingInfo] = useState(null);
   const [loadingAddress, setLoadingAddress] = useState(true);
 
-  // Fetch user profile to get shipping address
+  // Fetch user profile to get shipping address and phone
   useEffect(() => {
     const fetchProfile = async () => {
       if (userInfo) {
         try {
           const { data } = await API.get('/api/v1/profile');
-          if (data && data.shippingAddress && data.shippingAddress.address) {
-            setShippingInfo({ ...data.shippingAddress, name: data.name });
-          } else {
-             setShippingInfo({ name: data.name });
+          if (data) {
+            // **FIX:** Combine all necessary info into one shipping object
+            setShippingInfo({ 
+                name: data.name,
+                phone: data.phone,
+                ...(data.shippingAddress || {})
+            });
           }
         } catch (error) {
           toast.error("Could not fetch your shipping address.");
@@ -44,7 +47,7 @@ const CheckoutPage = () => {
     let tax = 0;
     let cod = 0;
     if (paymentMethod === 'online') tax = cartSubtotal * 0.0255;
-    else if (paymentMethod === 'COD') cod = 20; // Match uppercase state
+    else if (paymentMethod === 'COD') cod = 20;
     return { finalTotal: cartSubtotal + tax + cod, taxAmount: tax, codFee: cod };
   }, [cartSubtotal, paymentMethod]);
 
@@ -59,12 +62,17 @@ const CheckoutPage = () => {
 
   const createOrderPayload = () => {
       if (!shippingInfo || !shippingInfo.address) {
-          toast.error("Please add a shipping address to your profile before placing an order.");
+          toast.error("Please add a shipping address to your profile.");
+          return null;
+      }
+      // **FIX:** Also check for phone number
+      if (!shippingInfo.phone) {
+          toast.error("Please add a phone number to your profile to continue.");
           return null;
       }
       return {
           orderItems: cartItems.map(item => ({ ...item, product: item._id, image: item.images[0] })),
-          shippingInfo,
+          shippingInfo, // This now includes name and phone
           totalPrice: finalTotal,
           paymentMethod,
           shippingPrice: paymentMethod === 'COD' ? codFee : 0,
@@ -129,7 +137,7 @@ const CheckoutPage = () => {
               toast.error("Error finalizing order after payment.");
             }
           },
-        prefill: { name: userInfo?.name, email: userInfo?.email },
+        prefill: { name: userInfo?.name, email: userInfo?.email, contact: shippingInfo.phone },
         notes: { address: shippingInfo.address },
         theme: { color: "#08747c" },
       };
@@ -165,18 +173,19 @@ const CheckoutPage = () => {
             <div className="cart-layout">
                 <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
                     <div className="checkout-summary">
-                        <h2 style={{marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px'}}><FaMapMarkerAlt /> Shipping Address</h2>
+                        <h2 style={{marginTop: 0, display: 'flex', alignItems: 'center', gap: '10px'}}><FaMapMarkerAlt /> Shipping Details</h2>
                         {shippingInfo?.address ? (
                             <div>
                                 <p style={{margin: '4px 0', fontWeight: 'bold'}}>{shippingInfo.name}</p>
+                                <p style={{margin: '4px 0'}}>{shippingInfo.phone}</p>
                                 <p style={{margin: '4px 0'}}>{shippingInfo.address}</p>
                                 <p style={{margin: '4px 0'}}>{shippingInfo.city}, {shippingInfo.postalCode}</p>
-                                <Link to="/profile/edit" style={{color: 'var(--color-secondary)', fontWeight: 500}}>Change Address</Link>
+                                <Link to="/profile/edit" style={{color: 'var(--color-secondary)', fontWeight: 500}}>Change Details</Link>
                             </div>
                         ) : (
                             <div style={{padding: '10px', background: '#fff8e1', borderRadius: 'var(--r-sm)'}}>
-                                <p style={{margin: 0}}>You have no shipping address saved.</p>
-                                <Link to="/profile/edit" className="btn-full" style={{marginTop: 12, width: 'auto', display: 'inline-block', padding: '8px 16px'}}>Add Address</Link>
+                                <p style={{margin: 0}}>Please add your address and phone number to your profile.</p>
+                                <Link to="/profile/edit" className="btn-full" style={{marginTop: 12, width: 'auto', display: 'inline-block', padding: '8px 16px'}}>Add Details</Link>
                             </div>
                         )}
                     </div>
@@ -226,7 +235,7 @@ const CheckoutPage = () => {
                         </div>
                     </div>
 
-                    <button onClick={placeOrder} disabled={isPlacing || !shippingInfo?.address} className="btn-full">
+                    <button onClick={placeOrder} disabled={isPlacing || !shippingInfo?.address || !shippingInfo?.phone} className="btn-full">
                         {isPlacing ? "Processing..." : `Place Order`}
                     </button>
                 </div>
