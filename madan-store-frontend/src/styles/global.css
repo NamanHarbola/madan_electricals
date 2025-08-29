@@ -540,3 +540,16 @@ body.drawer-open{overflow:hidden}
   .pd-title { font-size: clamp(20px, 4.8vw, 24px); }
   .pd-price { font-size: clamp(20px, 4.8vw, 24px); }
 }
+/* ---------- 23) Profile Page Responsive Layout ---------- */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr; /* Mobile-first: single column */
+  gap: 32px;
+}
+
+/* On screens 768px and wider, switch to two columns */
+@media (min-width: 768px) {
+  .profile-layout {
+    grid-template-columns: 1fr 2fr; /* Two columns for tablets and desktops */
+  }
+}
