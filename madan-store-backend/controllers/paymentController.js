@@ -1,3 +1,5 @@
+// madan-store-backend/controllers/paymentController.js
+
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
@@ -11,27 +13,32 @@ const instance = new Razorpay({
 // @access  Private
 const createRazorpayOrder = async (req, res) => {
     try {
-        // 🟢 This should always come in INR (decimal) from frontend
-        const baseAmount = Number(req.body.amount); // e.g. 5.11
+        // This amount should be the clean cart subtotal sent from the frontend
+        const baseAmount = Number(req.body.amount); 
 
         if (!baseAmount || baseAmount <= 0) {
             return res.status(400).json({ message: "Invalid amount" });
         }
 
-        // === Razorpay Fees Calculation (for display only, not required by API) ===
-        const feePercent = 2.11; // Razorpay base fee %
-        const gstPercent = 18;   // GST %
-        const effectiveDeduction = feePercent * (1 + gstPercent / 100); // ≈ 2.49%
+        // --- Convenience Fee Calculation (Passing Razorpay fees to customer) ---
+        // This logic ensures you receive the full 'baseAmount' after fees are deducted.
+        const feePercent = 2.0; // Standard Razorpay fee is ~2%
+        const gstPercent = 18;  // GST on the fee
 
-        // How much extra user pays (so you still receive full baseAmount)
-        const grossUpPercent = (effectiveDeduction / (100 - effectiveDeduction)) * 100;
+        // Calculate the total fee percentage including GST
+        const feeWithGst = feePercent * (1 + gstPercent / 100); // e.g., 2 * 1.18 = 2.36%
 
-        const taxAmount = (baseAmount * grossUpPercent) / 100;   // e.g. 0.02
-        const finalAmount = baseAmount + taxAmount;              // e.g. 5.13
+        // To ensure you receive the full baseAmount, we calculate the gross amount to charge the customer.
+        // The formula is: GrossAmount = BaseAmount / (1 - FeePercentage)
+        const finalAmount = baseAmount / (1 - (feeWithGst / 100));
 
-        // === Razorpay expects PAISA (integer) ===
+        const convenienceFee = finalAmount - baseAmount;
+
+        // Razorpay expects the amount in the smallest currency unit (paise)
+        const amountInPaise = Math.round(finalAmount * 100);
+
         const options = {
-            amount: Math.round(finalAmount * 100), // 5.13 → 513 paise
+            amount: amountInPaise,
             currency: "INR",
             receipt: `receipt_order_${Date.now()}`,
         };
@@ -39,12 +46,12 @@ const createRazorpayOrder = async (req, res) => {
         const order = await instance.orders.create(options);
         if (!order) return res.status(500).send("Some error occurred");
 
-        // Send back tax + finalAmount so frontend can show breakdown
+        // Send back the final calculated amounts so the frontend can display them accurately
         res.json({
             ...order,
             breakdown: {
-                baseAmount,
-                taxAmount: Number(taxAmount.toFixed(2)),
+                baseAmount: Number(baseAmount.toFixed(2)),
+                convenienceFee: Number(convenienceFee.toFixed(2)),
                 finalAmount: Number(finalAmount.toFixed(2)),
             },
         });
