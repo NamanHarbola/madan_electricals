@@ -22,7 +22,7 @@ const orderSchema = new mongoose.Schema({
     ],
     shippingInfo: {
         name: { type: String, required: true },
-        phone: { type: String, required: true }, // <-- ADD THIS LINE
+        phone: { type: String }, // <-- CORRECTED: Made this optional for now to prevent crashes
         landmark: { type: String },
         address: { type: String, required: true },
         city: { type: String, required: true },
