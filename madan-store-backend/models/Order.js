@@ -20,7 +20,7 @@ const orderSchema = new mongoose.Schema({
             }
         }
     ],
-    shippingInfo: { // Add shipping info
+    shippingInfo: {
         name: { type: String, required: true },
         landmark: { type: String },
         address: { type: String, required: true },
@@ -36,7 +36,8 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['Razorpay', 'COD'],
+        // **FIX:** Accept both 'COD' and 'cod' to be safe
+        enum: ['Razorpay', 'COD', 'cod'], 
         default: 'COD'
     },
     isPaid: {
@@ -53,8 +54,8 @@ const orderSchema = new mongoose.Schema({
         enum: ['Pending', 'Paid', 'Shipped', 'Delivered', 'Cancelled'],
         default: 'Pending'
     },
-    shippingPrice: { type: Number, required: true, default: 0.0 }, // Add shipping price
-    trackingNumber: { type: String }, // Add tracking number
+    shippingPrice: { type: Number, required: true, default: 0.0 },
+    trackingNumber: { type: String },
 }, {
     timestamps: true
 });
