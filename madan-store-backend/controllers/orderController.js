@@ -48,12 +48,10 @@ const createOrder = async (req, res) => {
             return res.status(400).json({ message: 'No order items' });
         }
         
-        // **CRITICAL FIX:** Ensure shippingInfo exists and has a name.
         if (!shippingInfo || !shippingInfo.address) {
             return res.status(400).json({ message: 'Shipping information is missing.' });
         }
         
-        // Add user's name to shipping info if it's not there
         const finalShippingInfo = {
             name: shippingInfo.name || req.user.name,
             ...shippingInfo
@@ -67,11 +65,12 @@ const createOrder = async (req, res) => {
             orderItems: orderItems.map(item => ({
                 name: item.name,
                 qty: item.qty,
-                image: item.images[0],
+                // **CRITICAL FIX:** Safely access the image to prevent crashes
+                image: (item.images && item.images[0]) || item.image || '/images/placeholder.jpg',
                 price: item.price,
                 product: item._id
             })),
-            shippingInfo: finalShippingInfo, // Use the corrected shipping info
+            shippingInfo: finalShippingInfo,
             shippingPrice,
             totalPrice,
             paymentMethod,
@@ -92,11 +91,10 @@ const createOrder = async (req, res) => {
 
     } catch (error) {
         console.error("Error creating order:", error);
-        // Provide a more specific error message if it's a validation error
         if (error.name === 'ValidationError') {
             return res.status(400).json({ message: `Validation Error: ${error.message}` });
         }
-        res.status(500).json({ message: 'Server Error' });
+        res.status(500).json({ message: 'Server Error Creating Order' });
     }
 };
 
