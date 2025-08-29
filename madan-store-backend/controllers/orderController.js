@@ -1,7 +1,7 @@
+// madan-store-backend/controllers/orderController.js
 const Order = require('../models/Order');
-const User = require('../models/User'); // Import the User model
+const User = require('../models/User');
 
-// ... (getOrders, getOrderById, getMyOrders functions remain the same) ...
 const getOrders = async (req, res) => {
     try {
         const orders = await Order.find({}).populate('user', 'name email').sort({ createdAt: -1 });
@@ -40,12 +40,6 @@ const getMyOrders = async (req, res) => {
     }
 };
 
-
-/**
- * @desc    Create a new order
- * @route   POST /api/orders
- * @access  Private
- */
 const createOrder = async (req, res) => {
     try {
         const { orderItems, shippingInfo, totalPrice, paymentMethod, shippingPrice } = req.body;
@@ -53,8 +47,19 @@ const createOrder = async (req, res) => {
         if (!orderItems || orderItems.length === 0) {
             return res.status(400).json({ message: 'No order items' });
         }
+        
+        // **CRITICAL FIX:** Ensure shippingInfo exists and has a name.
+        if (!shippingInfo || !shippingInfo.address) {
+            return res.status(400).json({ message: 'Shipping information is missing.' });
+        }
+        
+        // Add user's name to shipping info if it's not there
+        const finalShippingInfo = {
+            name: shippingInfo.name || req.user.name,
+            ...shippingInfo
+        };
 
-        const isPaid = paymentMethod === 'Razorpay'; // Assume Razorpay is paid instantly
+        const isPaid = paymentMethod === 'Razorpay';
         const status = isPaid ? 'Paid' : 'Pending';
 
         const order = new Order({
@@ -62,11 +67,11 @@ const createOrder = async (req, res) => {
             orderItems: orderItems.map(item => ({
                 name: item.name,
                 qty: item.qty,
-                image: item.image,
+                image: item.images[0],
                 price: item.price,
                 product: item._id
             })),
-            shippingInfo,
+            shippingInfo: finalShippingInfo, // Use the corrected shipping info
             shippingPrice,
             totalPrice,
             paymentMethod,
@@ -77,7 +82,6 @@ const createOrder = async (req, res) => {
 
         const createdOrder = await order.save();
         
-        // FIX: Auto-save shipping address to user profile
         const user = await User.findById(req.user._id);
         if (user) {
             user.shippingAddress = shippingInfo;
@@ -87,27 +91,23 @@ const createOrder = async (req, res) => {
         res.status(201).json(createdOrder);
 
     } catch (error) {
-        console.error(error);
+        console.error("Error creating order:", error);
+        // Provide a more specific error message if it's a validation error
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: `Validation Error: ${error.message}` });
+        }
         res.status(500).json({ message: 'Server Error' });
     }
 };
 
-/**
- * @desc    Update order status
- * @route   PUT /api/orders/:id/status
- * @access  Private/Admin
- */
 const updateOrderStatus = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
 
         if (order) {
             const { status } = req.body;
-
-            // Update status
             order.status = status;
 
-            // If status is 'Paid' and it wasn't before, update payment details
             if (status === 'Paid' && !order.isPaid) {
                 order.isPaid = true;
                 order.paidAt = Date.now();
@@ -122,6 +122,5 @@ const updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: 'Server error updating status' });
     }
 };
-
 
 module.exports = { getOrders, getOrderById, getMyOrders, createOrder, updateOrderStatus };
