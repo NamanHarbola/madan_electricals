@@ -46,7 +46,6 @@ const ProfilePage = () => {
     }
   }, [userInfo, fetchProfile, fetchMyOrders]);
 
-  // Combined loading state
   const loading = loadingProfile || loadingOrders;
 
   return (
@@ -66,7 +65,6 @@ const ProfilePage = () => {
             gap: '32px',
           }}
         >
-          {/* Profile card */}
           <section
             className="profile-details"
             aria-label="User details"
@@ -94,12 +92,10 @@ const ProfilePage = () => {
               <h3 style={{ margin: 0, color: 'var(--color-primary)' }}>User Details</h3>
             </div>
 
-            <p style={{ margin: '8px 0' }}>
-              <strong>Name:</strong> {profile?.name || '—'}
-            </p>
-            <p style={{ margin: '8px 0' }}>
-              <strong>Email:</strong> {profile?.email || '—'}
-            </p>
+            <p style={{ margin: '8px 0' }}><strong>Name:</strong> {profile?.name || '—'}</p>
+            <p style={{ margin: '8px 0' }}><strong>Email:</strong> {profile?.email || '—'}</p>
+            {/* --- DISPLAY PHONE NUMBER --- */}
+            <p style={{ margin: '8px 0' }}><strong>Phone:</strong> {profile?.phone || 'Not set'}</p>
 
             <h4 style={{ marginTop: '24px', color: 'var(--color-primary)' }}>Shipping Address</h4>
             {profile?.shippingAddress ? (
@@ -118,39 +114,21 @@ const ProfilePage = () => {
             </Link>
           </section>
 
-          {/* Orders */}
           <section className="order-history" aria-label="Order history">
             <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>My Orders</h3>
-
             {orders.length === 0 ? (
-              <div
-                style={{
-                  background: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--r-md)',
-                  padding: 16,
-                }}
-              >
+              <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--r-md)', padding: 16 }}>
                 <p style={{ margin: 0 }}>You have not placed any orders yet.</p>
-                <Link to="/" className="btn-full" style={{ marginTop: 12, width: 'auto' }}>
-                  Start Shopping
-                </Link>
+                <Link to="/" className="btn-full" style={{ marginTop: 12, width: 'auto' }}>Start Shopping</Link>
               </div>
             ) : (
               <>
-                {/* Desktop table */}
                 <div className="order-table-wrapper desktop-only">
                   <div className="admin-table-container">
                     <div className="admin-table-wrap">
                       <table className="admin-table">
                         <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th></th>
-                          </tr>
+                          <tr><th>ID</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr>
                         </thead>
                         <tbody>
                           {orders.map((order) => (
@@ -158,23 +136,9 @@ const ProfilePage = () => {
                               <td>...{order._id.substring(18)}</td>
                               <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                               <td>{formatCurrency(order.totalPrice)}</td>
+                              <td><span className={`status-badge ${order.status.toLowerCase()}`}>{order.status}</span></td>
                               <td>
-                                <span className={`status-badge ${order.status.toLowerCase()}`}>
-                                  {order.status}
-                                </span>
-                              </td>
-                              <td>
-                                <button
-                                  onClick={() => setSelectedOrder(order)}
-                                  className="btn-full"
-                                  style={{
-                                    marginTop: 0,
-                                    width: 'auto',
-                                    padding: '6px 14px',
-                                    fontSize: '.9rem',
-                                  }}
-                                  aria-label={`View order ${order._id}`}
-                                >
+                                <button onClick={() => setSelectedOrder(order)} className="btn-full" style={{ marginTop: 0, width: 'auto', padding: '6px 14px', fontSize: '.9rem' }} aria-label={`View order ${order._id}`}>
                                   View
                                 </button>
                               </td>
@@ -185,43 +149,14 @@ const ProfilePage = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* Mobile cards */}
                 <div className="order-cards mobile-only">
                   {orders.map((order) => (
-                    <article
-                      key={order._id}
-                      className="order-card"
-                      style={{
-                        background: 'var(--color-surface)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 'var(--r-md, 10px)',
-                        boxShadow: 'var(--shadow-sm)',
-                        padding: '16px',
-                        marginBottom: '16px',
-                      }}
-                    >
-                      <p style={{ margin: '4px 0' }}>
-                        <strong>Order ID:</strong> ...{order._id.substring(18)}
-                      </p>
-                      <p style={{ margin: '4px 0' }}>
-                        <strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
-                      <p style={{ margin: '4px 0' }}>
-                        <strong>Total:</strong> {formatCurrency(order.totalPrice)}
-                      </p>
-                      <p style={{ margin: '4px 0' }}>
-                        <strong>Status:</strong>{' '}
-                        <span className={`status-badge ${order.status.toLowerCase()}`}>{order.status}</span>
-                      </p>
-                      <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="btn-full"
-                        style={{ marginTop: '12px' }}
-                        aria-label={`View order ${order._id}`}
-                      >
-                        View Details
-                      </button>
+                    <article key={order._id} className="order-card" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--r-md, 10px)', boxShadow: 'var(--shadow-sm)', padding: '16px', marginBottom: '16px' }}>
+                      <p style={{ margin: '4px 0' }}><strong>Order ID:</strong> ...{order._id.substring(18)}</p>
+                      <p style={{ margin: '4px 0' }}><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
+                      <p style={{ margin: '4px 0' }}><strong>Total:</strong> {formatCurrency(order.totalPrice)}</p>
+                      <p style={{ margin: '4px 0' }}><strong>Status:</strong> <span className={`status-badge ${order.status.toLowerCase()}`}>{order.status}</span></p>
+                      <button onClick={() => setSelectedOrder(order)} className="btn-full" style={{ marginTop: '12px' }} aria-label={`View order ${order._id}`}>View Details</button>
                     </article>
                   ))}
                 </div>
