@@ -1,5 +1,5 @@
 // src/pages/AdminOrdersPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import API from '../api';
 import formatCurrency from '../utils/formatCurrency.js';
 import { useAuth } from '../hooks/useAuth.js';
@@ -12,7 +12,7 @@ const AdminOrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const { userInfo } = useAuth();
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const { data } = await API.get('/api/v1/orders');
       if (Array.isArray(data)) setOrders(data);
@@ -22,11 +22,11 @@ const AdminOrdersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (userInfo?.isAdmin) fetchOrders();
-  }, [userInfo]);
+  }, [userInfo, fetchOrders]);
 
   const statusChangeHandler = async (orderId, newStatus) => {
     // optimistic update
