@@ -71,6 +71,12 @@ const OrderDetailsModal = ({ order, onClose }) => {
 
   if (!order) return null;
 
+  // --- CALCULATE PRICE BREAKDOWN ---
+  const subtotal = order.orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const shippingFee = order.shippingPrice || 0;
+  // Infer tax/convenience fee by subtracting known values from the total
+  const taxOrFee = Math.max(0, order.totalPrice - subtotal - shippingFee);
+
   return (
     <div
       className="modal-backdrop"
@@ -102,7 +108,6 @@ const OrderDetailsModal = ({ order, onClose }) => {
         <div className="order-modal-body" id="order-modal-desc">
           <p><strong>Order ID:</strong> {order._id}</p>
           <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
-          <p><strong>Total:</strong> {formatCurrency(order.totalPrice)}</p>
           <p>
             <strong>Status:</strong>{' '}
             <span className={`status-badge ${order.status.toLowerCase()}`}>
@@ -121,14 +126,51 @@ const OrderDetailsModal = ({ order, onClose }) => {
                     {item.qty} × {formatCurrency(item.price)}
                   </p>
                 </div>
+                <div style={{marginLeft: 'auto', fontWeight: 'bold'}}>
+                  {formatCurrency(item.qty * item.price)}
+                </div>
               </div>
             ))}
           </div>
 
+          {/* --- NEW PRICE BREAKDOWN RECEIPT --- */}
+          <div style={{ marginTop: '24px', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
+              <h3 style={{ marginTop: 0 }}>Price Details</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(subtotal)}</span>
+              </div>
+              {shippingFee > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>
+                      <span>{order.paymentMethod === 'COD' ? 'COD Fee' : 'Shipping'}</span>
+                      <span>{formatCurrency(shippingFee)}</span>
+                  </div>
+              )}
+              {taxOrFee > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'var(--color-text-secondary)' }}>
+                      <span>Convenience Fee</span>
+                      <span>{formatCurrency(taxOrFee)}</span>
+                  </div>
+              )}
+              <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  fontWeight: 'bold', 
+                  fontSize: '1.1rem', 
+                  borderTop: '1px solid var(--color-border)', 
+                  paddingTop: '12px', 
+                  marginTop: '8px' 
+              }}>
+                  <span>Total Paid</span>
+                  <span>{formatCurrency(order.totalPrice)}</span>
+              </div>
+          </div>
+
+
           {/* Close button at bottom for mobile reachability */}
           <button
             className="btn-full"
-            style={{ marginTop: 16 }}
+            style={{ marginTop: 24 }}
             onClick={handleClose}
           >
             Close
