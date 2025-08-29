@@ -12,7 +12,8 @@ const getProfile = async (req, res) => {
             _id: user._id,
             name: user.name,
             email: user.email,
-            phone: user.phone, // <-- ADD THIS LINE
+            phone: user.phone,
+            isAdmin: user.isAdmin, // <-- ADDED for consistency
             shippingAddress: user.shippingAddress,
         });
     } else {
@@ -29,7 +30,10 @@ const updateProfile = async (req, res) => {
     if (user) {
         user.name = req.body.name || user.name;
         user.email = req.body.email || user.email;
-        user.phone = req.body.phone || user.phone; // <-- ADD THIS LINE
+        
+        // **CORRECTED:** This now correctly handles setting, changing,
+        // and clearing the phone number field.
+        user.phone = req.body.phone; 
 
         if (req.body.shippingAddress) {
             user.shippingAddress = req.body.shippingAddress;
@@ -41,7 +45,8 @@ const updateProfile = async (req, res) => {
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,
-            phone: updatedUser.phone, // <-- ADD THIS LINE
+            phone: updatedUser.phone,
+            isAdmin: updatedUser.isAdmin, // <-- ADDED for consistency
             shippingAddress: updatedUser.shippingAddress,
         });
     } else {
