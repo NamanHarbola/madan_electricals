@@ -57,14 +57,9 @@ const ProfilePage = () => {
           <LoadingSpinner />
         </div>
       ) : (
-        <div
-          className="profile-layout"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 2fr',
-            gap: '32px',
-          }}
-        >
+        // **UPDATED:** Removed the inline style from this div
+        <div className="profile-layout">
+          {/* Profile card */}
           <section
             className="profile-details"
             aria-label="User details"
@@ -94,7 +89,6 @@ const ProfilePage = () => {
 
             <p style={{ margin: '8px 0' }}><strong>Name:</strong> {profile?.name || '—'}</p>
             <p style={{ margin: '8px 0' }}><strong>Email:</strong> {profile?.email || '—'}</p>
-            {/* --- DISPLAY PHONE NUMBER --- */}
             <p style={{ margin: '8px 0' }}><strong>Phone:</strong> {profile?.phone || 'Not set'}</p>
 
             <h4 style={{ marginTop: '24px', color: 'var(--color-primary)' }}>Shipping Address</h4>
@@ -114,8 +108,10 @@ const ProfilePage = () => {
             </Link>
           </section>
 
+          {/* Orders */}
           <section className="order-history" aria-label="Order history">
             <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>My Orders</h3>
+
             {orders.length === 0 ? (
               <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--r-md)', padding: 16 }}>
                 <p style={{ margin: 0 }}>You have not placed any orders yet.</p>
