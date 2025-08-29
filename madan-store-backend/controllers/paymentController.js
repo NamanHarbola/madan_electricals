@@ -22,11 +22,11 @@ const createRazorpayOrder = async (req, res) => {
 
         // --- Convenience Fee Calculation (Passing Razorpay fees to customer) ---
         // This logic ensures you receive the full 'baseAmount' after fees are deducted.
-        const feePercent = 2.0; // Standard Razorpay fee is ~2%
+        const feePercent = 2.11; // **CORRECTED:** Using the precise 2.11% fee
         const gstPercent = 18;  // GST on the fee
 
-        // Calculate the total fee percentage including GST
-        const feeWithGst = feePercent * (1 + gstPercent / 100); // e.g., 2 * 1.18 = 2.36%
+        // Calculate the total fee percentage including GST (2.11 * 1.18 = 2.4898%)
+        const feeWithGst = feePercent * (1 + gstPercent / 100);
 
         // To ensure you receive the full baseAmount, we calculate the gross amount to charge the customer.
         // The formula is: GrossAmount = BaseAmount / (1 - FeePercentage)
