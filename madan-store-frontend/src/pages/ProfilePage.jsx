@@ -1,5 +1,5 @@
 // src/pages/ProfilePage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import API from '../api';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
@@ -17,34 +17,34 @@ const ProfilePage = () => {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  const fetchProfile = useCallback(async () => {
+    try {
+      const { data } = await API.get('/api/v1/profile');
+      setProfile(data);
+    } catch (error) {
+      toast.error('Could not fetch profile.');
+    } finally {
+      setLoadingProfile(false);
+    }
+  }, []);
+
+  const fetchMyOrders = useCallback(async () => {
+    try {
+      const { data } = await API.get('/api/v1/orders/myorders');
+      if (Array.isArray(data)) setOrders(data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not fetch orders.');
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const { data } = await API.get('/api/v1/profile');
-        setProfile(data);
-      } catch (error) {
-        toast.error('Could not fetch profile.');
-      } finally {
-        setLoadingProfile(false);
-      }
-    };
-
-    const fetchMyOrders = async () => {
-      try {
-        const { data } = await API.get('/api/v1/orders/myorders');
-        if (Array.isArray(data)) setOrders(data);
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'Could not fetch orders.');
-      } finally {
-        setLoadingOrders(false);
-      }
-    };
-
     if (userInfo) {
       fetchProfile();
       fetchMyOrders();
     }
-  }, [userInfo]);
+  }, [userInfo, fetchProfile, fetchMyOrders]);
 
   // Combined loading state
   const loading = loadingProfile || loadingOrders;
