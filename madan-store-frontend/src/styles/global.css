@@ -103,14 +103,13 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px}
 .desktop-only{display:inline-flex}
 @media (max-width:992px){.desktop-only{display:none}}
 
-/* --- Hamburger Button ---
-   Supports BOTH:
-   1) three <span> bars (animated to “X”)
-   2) text “☰” fallback (no spans) */
+/* --- Hamburger Button --- */
 .nav-toggle{
   background:none;border:1px solid rgba(255,255,255,.28);border-radius:8px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  width:40px;height:40px;padding:0;z-index:1100;color:#fff;font-size:22px;line-height:1;
+  width:44px; /* <-- CORRECTED */
+  height:44px; /* <-- CORRECTED */
+  padding:0;z-index:1100;color:#fff;font-size:22px;line-height:1;
 }
 .nav-toggle span{display:block;height:3px;width:22px;background:#fff;border-radius:2px;transition:all .3s ease-in-out}
 .nav-toggle span+span{margin-top:4px}
@@ -136,7 +135,6 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px}
 .drawer-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--color-border)}
 .drawer-footer .btn-logout,.drawer-footer .btn-login{width:100%}
 
-/* Optional helper when drawer is open – add/remove this class via JS */
 body.drawer-open{overflow:hidden}
 
 /* ---------- 4) Spinner ---------- */
@@ -192,7 +190,6 @@ body.drawer-open{overflow:hidden}
 .auth-switch-text{text-align:center;margin-top:var(--s-24);color:var(--color-text-secondary)}
 .auth-switch-text a{color:var(--color-secondary);font-weight:600}
 
-/* Grid row helper used in forms */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media (max-width:560px){.form-row{grid-template-columns:1fr}}
 
@@ -230,7 +227,6 @@ body.drawer-open{overflow:hidden}
 @media (max-width:1200px){.charts-grid{grid-template-columns:1fr}}
 .chart-container{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:clamp(12px,2vw,24px);min-width:0}
 .chart-container h3{margin:0 0 12px 0;text-align:left;font-weight:600;color:var(--color-text)}
-/* ChartJS canvas sizing fix */
 .chart-container canvas{display:block !important; width:100% !important; height:auto !important; max-height:420px}
 
 /* Tables */
@@ -308,7 +304,6 @@ body.drawer-open{overflow:hidden}
 .cart-item-actions button{color:var(--color-error);font-size:1rem}
 .cart-summary{position:sticky;top:calc(var(--banner-h) + 20px)}
 
-/* === CORRECTED SUMMARY ROW STYLES === */
 .summary-row {
   display: flex;
   margin-bottom: var(--s-16);
@@ -325,12 +320,11 @@ body.drawer-open{overflow:hidden}
   border-top: 1px solid var(--color-border);
   padding-top: var(--s-16);
   margin-top: var(--s-16);
-  justify-content: space-between; /* Keep this for the total row */
+  justify-content: space-between;
 }
 .summary-row.total span:last-child {
-  font-weight: 700; /* Ensure total value is also bold */
+  font-weight: 700;
 }
-
 
 /* ---------- 16) About ---------- */
 .about-section{padding:56px 0;background:var(--color-surface)}
@@ -373,7 +367,6 @@ body.drawer-open{overflow:hidden}
   .product-detail-content{grid-template-columns:1fr;gap:28px}
 }
 
-/* Breadcrumbs (two variants used across pages) */
 .breadcrumbs{width:min(1120px,92%);margin:0 auto 12px;font-size:.95rem;color:var(--color-text-secondary)}
 .breadcrumbs a{color:var(--color-secondary)}
 .breadcrumbs span.sep{margin:0 6px;opacity:.5}
@@ -424,12 +417,10 @@ body.drawer-open{overflow:hidden}
 @media (min-width:520px){.pd-trust{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .badge-tile{background:#f7fbfb;border:1px dashed var(--color-border);color:var(--color-primary);border-radius:10px;padding:10px 12px;font-size:.92rem;text-align:center}
 
-/* sticky buy box */
 @media (min-width:992px){
   .pd-card{position:sticky;top:calc(var(--banner-h) + var(--header-h) + 16px)}
 }
 
-/* polish older rule */
 .product-detail-image img{border-radius:12px}
 
 /* ---------- 19) Profile Orders – helper visibility classes ---------- */
@@ -473,7 +464,6 @@ body.drawer-open{overflow:hidden}
   white-space: nowrap !important;
   border: 0 !important;
 }
-/* === Product Detail — mobile downsize fixes === */
 @media (max-width: 480px) {
   .product-detail { padding-block: 16px 28px; }
 
@@ -483,19 +473,18 @@ body.drawer-open{overflow:hidden}
     margin-inline: auto;
   }
 
-  /* Gallery: cap height + contain so it doesn't dominate */
   .product-detail-gallery {
     padding: 8px;
     border-radius: 12px;
   }
   .pd-main {
-    aspect-ratio: auto;       /* let height control size */
-    height: 48vh;             /* cap on small screens */
+    aspect-ratio: auto;
+    height: 48vh;
     max-height: 360px;
     border-radius: 10px;
   }
   .pd-main img {
-    object-fit: contain;      /* no aggressive zoom/crop */
+    object-fit: contain;
     background: #fff;
   }
   .pd-thumbs {
@@ -503,7 +492,6 @@ body.drawer-open{overflow:hidden}
   }
   .pd-thumb { border-radius: 8px; }
 
-  /* Buy box: tighter paddings & type scales */
   .pd-card {
     padding: 14px;
     border-radius: 12px;
@@ -530,16 +518,15 @@ body.drawer-open{overflow:hidden}
   .pd-trust { gap: 8px; margin-top: 10px; }
   .badge-tile { padding: 8px 10px; font-size: .9rem; }
 
-  /* Breadcrumbs spacing */
   .breadcrumbs { width: 92%; margin: 0 auto 8px; font-size: .9rem; }
 }
 
-/* Slightly wider phones */
 @media (min-width: 481px) and (max-width: 640px) {
   .pd-main { height: 52vh; max-height: 420px; }
   .pd-title { font-size: clamp(20px, 4.8vw, 24px); }
   .pd-price { font-size: clamp(20px, 4.8vw, 24px); }
 }
+
 /* ---------- 23) Profile Page Responsive Layout ---------- */
 .profile-layout {
   display: grid;
@@ -547,7 +534,6 @@ body.drawer-open{overflow:hidden}
   gap: 32px;
 }
 
-/* On screens 768px and wider, switch to two columns */
 @media (min-width: 768px) {
   .profile-layout {
     grid-template-columns: 1fr 2fr; /* Two columns for tablets and desktops */
