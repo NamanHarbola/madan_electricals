@@ -106,10 +106,10 @@ button,.btn,.nav-link,.cart-icon-wrapper{min-height:44px}
 /* --- Hamburger Button --- */
 .nav-toggle{
   background:none;border:1px solid rgba(255,255,255,.28);border-radius:8px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  width:44px; /* <-- CORRECTED */
-  height:44px; /* <-- CORRECTED */
-  padding:0;z-index:1100;color:#fff;font-size:22px;line-height:1;
+  display:flex;
+  flex-direction: column; /* <-- THIS IS THE FIX */
+  align-items:center;justify-content:center;
+  width:44px;height:44px;padding:0;z-index:1100;color:#fff;font-size:22px;line-height:1;
 }
 .nav-toggle span{display:block;height:3px;width:22px;background:#fff;border-radius:2px;transition:all .3s ease-in-out}
 .nav-toggle span+span{margin-top:4px}
@@ -303,7 +303,6 @@ body.drawer-open{overflow:hidden}
 .cart-item-actions input{width:64px;text-align:center}
 .cart-item-actions button{color:var(--color-error);font-size:1rem}
 .cart-summary{position:sticky;top:calc(var(--banner-h) + 20px)}
-
 .summary-row {
   display: flex;
   margin-bottom: var(--s-16);
