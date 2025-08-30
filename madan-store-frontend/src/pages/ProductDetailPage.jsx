@@ -8,6 +8,65 @@ import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
+// SEO Helper to add/update meta tags
+const updateMetaDescription = (content) => {
+  let descriptionTag = document.querySelector('meta[name="description"]');
+  if (!descriptionTag) {
+    descriptionTag = document.createElement('meta');
+    descriptionTag.setAttribute('name', 'description');
+    document.head.appendChild(descriptionTag);
+  }
+  descriptionTag.setAttribute('content', content);
+};
+
+// SEO Helper for structured data
+const updateProductSchema = (product) => {
+  // Remove any existing product schema
+  const existingScript = document.getElementById('product-schema');
+  if (existingScript) {
+    existingScript.remove();
+  }
+  if (!product) return;
+
+  const schema = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: product.name,
+    image: product.images?.[0] || product.image,
+    description: product.description,
+    sku: product.sku || product._id,
+    brand: {
+      '@type': 'Brand',
+      name: product.brand || 'Madan Store',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: window.location.href,
+      priceCurrency: 'INR',
+      price: product.price,
+      itemCondition: 'https://schema.org/NewCondition',
+      availability:
+        product.stock > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+    },
+    aggregateRating:
+      product.numReviews > 0
+        ? {
+            '@type': 'AggregateRating',
+            ratingValue: product.rating,
+            reviewCount: product.numReviews,
+          }
+        : undefined,
+  };
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = 'product-schema';
+  script.innerHTML = JSON.stringify(schema);
+  document.head.appendChild(script);
+};
+
 const ProductDetailPage = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
@@ -39,7 +98,10 @@ const ProductDetailPage = () => {
       setActiveIdx(0);
       setQty(1);
       setErr('');
+      // --- SEO Updates ---
       document.title = `${normalized.name} | Madan Store`;
+      updateMetaDescription(`Buy ${normalized.name} at Madan Store. ${normalized.description.substring(0, 120)}...`);
+      updateProductSchema(normalized);
     } catch (e) {
       setErr('Could not load product details.');
     } finally {
@@ -49,6 +111,8 @@ const ProductDetailPage = () => {
 
   useEffect(() => {
     fetchProduct();
+    // Cleanup schema when component unmounts
+    return () => updateProductSchema(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
