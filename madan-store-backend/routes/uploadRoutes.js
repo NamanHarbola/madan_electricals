@@ -1,198 +1,69 @@
-// src/components/HeroSlider.jsx
-import React, { useState, useEffect, useRef } from 'react';
-import API from '../api';
-import { useNavigate } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import LoadingSpinner from './LoadingSpinner';
+const express = require('express');
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
+const { protect, admin } = require('../middleware/authMiddleware');
+const router = express.Router();
 
-const AUTO_INTERVAL = 5000;
+// Configure Cloudinary directly here.
+// NOTE: Your .env file with Cloudinary credentials MUST be loaded in your main server.js file.
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-/** Build a srcset using ?w= (many CDNs support; harmless if ignored) */
-const buildSrcSet = (url) => {
-  if (!url) return undefined;
-  const sep = url.includes('?') ? '&' : '?';
-  return [
-    `${url}${sep}w=800 800w`,
-    `${url}${sep}w=1200 1200w`,
-    `${url}${sep}w=1600 1600w`,
-  ].join(', ');
-};
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'madan-store',
+        allowed_formats: ['jpeg', 'png', 'jpg'],
+        // This transformation now includes a quality setting
+        transformation: [
+            { width: 1920, height: 1080, crop: 'limit' },
+            { quality: 'auto:good' } // <-- THE FIX: Prioritizes quality
+        ]
+    },
+});
 
-/** Match actual visual width of hero on common breakpoints */
-const HERO_SIZES = '(max-width: 599px) 100vw, (max-width: 991px) 90vw, 80vw';
-
-const HeroSlider = () => {
-  const [banners, setBanners] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [keyword, setKeyword] = useState('');
-  const [isHovering, setIsHovering] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const navigate = useNavigate();
-  const touchStartX = useRef(null);
-
-  useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        const { data } = await API.get('/api/v1/banners');
-        if (Array.isArray(data)) setBanners(data);
-      } catch (error) {
-        console.error('Failed to fetch banners', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBanners();
-  }, []);
-
-  // Auto-advance
-  useEffect(() => {
-    if (banners.length > 1 && !isHovering) {
-      const t = setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % banners.length);
-      }, AUTO_INTERVAL);
-      return () => clearTimeout(t);
+const upload = multer({
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        if (!file.mimetype.startsWith('image/')) {
+            return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);
     }
-  }, [currentIndex, banners.length, isHovering]);
+});
 
-  const nextSlide = () => {
-    if (banners.length > 1) setCurrentIndex((prev) => (prev + 1) % banners.length);
-  };
-  const prevSlide = () => {
-    if (banners.length > 1) setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-  };
-  const goToSlide = (i) => setCurrentIndex(i);
+// This is the new, robust upload route
+router.post('/', protect, admin, (req, res) => {
+    const uploader = upload.single('image');
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    if (keyword.trim()) navigate(`/search/${keyword}`);
-    else navigate('/');
-  };
+    uploader(req, res, function (err) {
+        // Handle errors from Multer and Cloudinary
+        if (err) {
+            console.error("Upload Error:", err);
+            let message = 'File upload failed. Please try again.';
+            if (err.message && err.message.includes('Invalid API key')) {
+                message = 'Cloudinary Error: Invalid API key or secret. Please check your .env file.';
+            } else if (err.message) {
+                message = err.message;
+            }
+            return res.status(500).json({ message });
+        }
 
-  const handleBannerClick = (link) => link && navigate(link);
+        // If middleware succeeds but there's no file, it's a client error.
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file was uploaded.' });
+        }
 
-  // Touch swipe (mobile)
-  const onTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const onTouchEnd = (e) => {
-    if (touchStartX.current == null) return;
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(delta) > 40) {
-      if (delta < 0) nextSlide();
-      else prevSlide();
-    }
-    touchStartX.current = null;
-  };
+        // Success! Send back the secure URL.
+        res.status(200).json({
+            message: 'Image uploaded successfully',
+            imageUrl: req.file.path
+        });
+    });
+});
 
-  if (loading) {
-    return (
-      <div className="hero-slider" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (banners.length === 0) {
-    return (
-      <div className="hero-slider">
-        <div className="slide active">
-          <img
-            src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&q=80"
-            alt="Hero banner"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-            fetchPriority="high"
-            loading="eager"
-            decoding="sync"
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="hero-slider"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      {/* Slides */}
-      {banners.map((banner, index) => {
-        const isActive = index === currentIndex;
-        const imageUrl = banner.image;
-
-        return (
-          <div
-            key={banner._id || index}
-            className={`slide ${isActive ? 'active' : ''}`}
-            onClick={() => handleBannerClick(banner.link)}
-            aria-hidden={!isActive}
-          >
-            {/* Use a real <img> for srcset/sizes; fade handled by .slide opacity */}
-            <img
-              src={imageUrl}
-              srcSet={buildSrcSet(imageUrl)}
-              sizes={HERO_SIZES}
-              alt={banner.title || 'Promotional banner'}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                cursor: banner.link ? 'pointer' : 'default',
-              }}
-              loading={index === 0 ? 'eager' : 'lazy'}
-              decoding={index === 0 ? 'sync' : 'async'}
-              fetchPriority={index === 0 ? 'high' : 'auto'}
-            />
-          </div>
-        );
-      })}
-
-      {/* Overlay content: search */}
-      <div className="hero-content">
-        <form onSubmit={submitHandler} className="hero-search-form" role="search" aria-label="Site search">
-          <input
-            type="text"
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Enter your query..."
-            className="hero-search-input"
-            inputMode="search"
-            autoComplete="off"
-          />
-          <button type="submit" className="hero-search-button">Search</button>
-        </form>
-      </div>
-
-      {/* Controls */}
-      {banners.length > 1 && (
-        <>
-          <button className="slider-arrow prev" onClick={prevSlide} aria-label="Previous slide">
-            <FaChevronLeft />
-          </button>
-          <button className="slider-arrow next" onClick={nextSlide} aria-label="Next slide">
-            <FaChevronRight />
-          </button>
-          <div className="slider-dots" role="tablist" aria-label="Hero slide navigation">
-            {banners.map((_, index) => (
-              <span
-                key={index}
-                role="tab"
-                aria-selected={index === currentIndex ? 'true' : 'false'}
-                className={`dot ${index === currentIndex ? 'active' : ''}`}
-                onClick={() => goToSlide(index)}
-                tabIndex={0}
-                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && goToSlide(index)}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
-export default HeroSlider;
+module.exports = router;
