@@ -53,10 +53,10 @@ const updateProductSchema = (product) => {
     aggregateRating:
       product.numReviews > 0
         ? {
-            '@type': 'AggregateRating',
-            ratingValue: product.rating,
-            reviewCount: product.numReviews,
-          }
+          '@type': 'AggregateRating',
+          ratingValue: product.rating,
+          reviewCount: product.numReviews,
+        }
         : undefined,
   };
 
@@ -91,8 +91,8 @@ const ProductDetailPage = () => {
         Array.isArray(data.images) && data.images.length
           ? data.images
           : data.image
-          ? [data.image]
-          : [];
+            ? [data.image]
+            : [];
       const normalized = { ...data, images };
       setProduct(normalized);
       setActiveIdx(0);
@@ -261,10 +261,14 @@ const ProductDetailPage = () => {
             <div className="pd-meta" aria-live="polite">
               <div
                 className="stars"
-                aria-label={`${product.rating ?? 4.8} out of 5`}
-                title={`${product.rating ?? 4.8} out of 5`}
+                role="img"
+                aria-label={`Rating: ${product.rating} out of 5 stars.`}
               >
-                ★★★★★
+                <span aria-hidden="true" style={{ color: product.rating >= 1 ? '#f4b400' : '#ddd' }}>★</span>
+                <span aria-hidden="true" style={{ color: product.rating >= 2 ? '#f4b400' : '#ddd' }}>★</span>
+                <span aria-hidden="true" style={{ color: product.rating >= 3 ? '#f4b400' : '#ddd' }}>★</span>
+                <span aria-hidden="true" style={{ color: product.rating >= 4 ? '#f4b400' : '#ddd' }}>★</span>
+                <span aria-hidden="true" style={{ color: product.rating >= 5 ? '#f4b400' : '#ddd' }}>★</span>
               </div>
               {typeof product.numReviews === 'number' && (
                 <>
@@ -298,8 +302,8 @@ const ProductDetailPage = () => {
               {(Array.isArray(product.keyFeatures) && product.keyFeatures.length
                 ? product.keyFeatures.slice(0, 5)
                 : product.description
-                ? product.description.split('\n').filter(Boolean).slice(0, 3)
-                : []
+                  ? product.description.split('\n').filter(Boolean).slice(0, 3)
+                  : []
               )
                 .concat(
                   (!product.keyFeatures || product.keyFeatures.length === 0) && !product.description
