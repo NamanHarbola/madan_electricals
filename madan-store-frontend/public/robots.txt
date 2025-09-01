@@ -1,0 +1,11 @@
+# Allow all web crawlers to access all content
+User-agent: *
+Allow: /
+
+# Disallow crawling of admin and sensitive areas
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /checkout/
+
+# Provide a link to the sitemap (optional but good practice)
+Sitemap: https://madan-electricalsfrontend.vercel.app/sitemap.xml
