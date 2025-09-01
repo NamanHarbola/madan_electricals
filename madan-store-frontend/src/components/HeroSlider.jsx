@@ -19,7 +19,7 @@ const buildSrcSet = (url) => {
 };
 
 /** Match actual visual width of hero on common breakpoints */
-const HERO_SIZES = '(max-width: 599px) 100vw, (max-width: 991px) 90vw, 80vw';
+const HERO_SIZES = '(max-width: 767px) 100vw, 80vw';
 
 const HeroSlider = () => {
   const [banners, setBanners] = useState([]);

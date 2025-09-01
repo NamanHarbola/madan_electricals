@@ -166,7 +166,7 @@ body.drawer-open{overflow:hidden}
 .product-card{display:flex;flex-direction:column;width:100%;max-width:420px;background:var(--color-surface);
   border:1px solid var(--color-border);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow-sm);transition:var(--transition-fast)}
 .product-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
-.product-image{position:relative;width:100%;aspect-ratio:1/1;background:#eee}
+.product-image{position:relative;width:100%;aspect-ratio:1/1;background:#eee;overflow: hidden;}
 .product-image img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .product-info{display:flex;flex-direction:column;gap:8px;padding:var(--s-20);flex:1}
 .product-info h3{margin:0;font-size:1.05rem;font-weight:600}
@@ -259,7 +259,19 @@ body.drawer-open{overflow:hidden}
 .footer .footer-bottom{text-align:center;margin-top:24px;border-top:1px solid rgba(255,255,255,.22);padding-top:16px}
 
 /* ---------- 13) Hero Slider ---------- */
-.hero-slider{position:relative;width:calc(100% - 20px);height:48vh;max-height:520px;min-height:200px;margin:10px auto;border-radius:16px;overflow:hidden;background:var(--color-border);z-index:0}
+.hero-slider {
+  position: relative;
+  width: calc(100% - 20px);
+  aspect-ratio: 16 / 9; /* <-- ADD THIS LINE */
+  height: auto; /* <-- CHANGE from 48vh */
+  max-height: 520px;
+  min-height: 200px;
+  margin: 10px auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--color-border);
+  z-index: 0;
+}
 @media (max-width:768px){.hero-slider{height:40vh;max-height:420px;border-radius:12px}}
 @media (max-width:480px){.hero-slider{height:36vh;max-height:360px}}
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 700ms ease-in-out}
