@@ -25,7 +25,8 @@ app.use(helmet());
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://madan-electricalsfrontend.vercel.app'
+  'https://madan-electricalsfrontend.vercel.app',
+  'https://www.madanelectricals.com' // <-- Add this line
 ];
 
 const corsOptions = {
