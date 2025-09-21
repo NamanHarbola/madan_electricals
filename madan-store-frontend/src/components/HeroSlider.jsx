@@ -144,7 +144,7 @@ const HeroSlider = () => {
                 objectFit: 'cover',
                 cursor: banner.link ? 'pointer' : 'default',
               }}
-              loading={index === 0 ? 'eager' : 'lazy'}
+               loading={index === 0 ? 'eager' : 'lazy'}
               decoding={index === 0 ? 'sync' : 'async'}
               fetchPriority={index === 0 ? 'high' : 'auto'}
             />
