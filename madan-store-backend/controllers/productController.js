@@ -50,6 +50,7 @@ const createProduct = async (req, res) => {
         const { name, price, mrp, category, images, description, stock, trending } = req.body;
         
         const product = new Product({
+            user: req.user._id, // This line is the fix
             name,
             price,
             mrp,
