@@ -51,11 +51,12 @@ const createProduct = async (req, res) => {
         const { name, price, mrp, category, images, description, stock, trending } = req.body;
         
         const product = new Product({
+            user: req.user._id, // Add this line
             name,
             price,
             mrp,
             category,
-            images, // Use the images array
+            images,
             description,
             stock,
             trending,
@@ -85,7 +86,7 @@ const updateProduct = async (req, res) => {
             product.price = price || product.price;
             product.mrp = mrp || product.mrp;
             product.description = description || product.description;
-            product.images = images || product.images; // Use images array
+            product.images = images || product.images;
             product.category = category || product.category;
             product.stock = stock !== undefined ? stock : product.stock;
             product.trending = trending !== undefined ? trending : product.trending;
