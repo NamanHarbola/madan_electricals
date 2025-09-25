@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../hooks/useAuth.js';
 import { useNavigate } from 'react-router-dom';
 
-const MAX_IMAGE_MB = 4;
+const MAX_IMAGE_MB = 4; // reject huge images to keep uploads fast
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const AddProductForm = () => {
@@ -53,7 +53,7 @@ const AddProductForm = () => {
 
   const setField = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: undefined }));
+    setErrors(prev => ({ ...prev, [name]: undefined })); // clear field error on edit
   };
 
   const handleChange = (e) => {
@@ -83,6 +83,7 @@ const AddProductForm = () => {
     setImagePreview(url);
   };
 
+  // simple client validation
   const validate = () => {
     const next = {};
     const price = Number(formData.price);
@@ -112,6 +113,7 @@ const AddProductForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
+      // move focus to first error
       const firstKey = Object.keys(errors)[0];
       if (firstKey) document.getElementById(firstKey)?.focus();
       return;
@@ -121,18 +123,20 @@ const AddProductForm = () => {
       setSubmitting(true);
       setUploading(true);
 
+      // Step 1: upload image
       const fd = new FormData();
       fd.append('image', imageFile);
       const { data: uploadData } = await API.post('/api/v1/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
+      // Step 2: create product with the uploaded image URL
       const payload = {
         ...formData,
         price: Number(formData.price),
         mrp: Number(formData.mrp),
         stock: Number(formData.stock),
-        images: [uploadData.imageUrl],
+        images: [uploadData.imageUrl], // Use the URL from the upload response
       };
 
       await API.post('/api/v1/products', payload);
