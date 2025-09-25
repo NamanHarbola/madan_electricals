@@ -1,5 +1,5 @@
 // src/pages/AdminProductsPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import API from '../api';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -17,8 +17,9 @@ const IMG_FALLBACK =
 
 const AdminProductsPage = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchProducts = async () => {
     try {
@@ -42,10 +43,18 @@ const AdminProductsPage = () => {
     fetchProducts();
   }, []);
 
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm) {
+      return products;
+    }
+    return products.filter(product =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [products, searchTerm]);
+
   const deleteHandler = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      // API instance should attach auth headers automatically
       await API.delete(`/api/v1/products/${id}`);
       setProducts((prev) => prev.filter((p) => p._id !== id));
       toast.success('Product deleted successfully');
@@ -66,14 +75,24 @@ const AdminProductsPage = () => {
     <div className="admin-page-container">
       <div
         className="admin-header"
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}
       >
         <h1 className="page-title" style={{ marginBottom: 0, paddingTop: 0 }}>
           Products
         </h1>
-        <Link to="/admin/products/add" className="btn-full" style={{ marginTop: 0, width: 'auto' }}>
-          + Add Product
-        </Link>
+        <div className="admin-actions" style={{ display: 'flex', gap: '1rem' }}>
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="form-control"
+            style={{ width: '250px' }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Link to="/admin/products/add" className="btn-full" style={{ marginTop: 0, width: 'auto' }}>
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       <div className="admin-table-container" role="region" aria-label="Products table">
@@ -90,7 +109,7 @@ const AdminProductsPage = () => {
           </thead>
 
           <tbody>
-            {products.map((product) => {
+            {filteredProducts.map((product) => {
               const img =
                 (Array.isArray(product.images) && product.images[0]) ||
                 product.image ||

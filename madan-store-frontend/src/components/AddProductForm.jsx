@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../hooks/useAuth.js';
 import { useNavigate } from 'react-router-dom';
 
-const MAX_IMAGE_MB = 4; // reject huge images to keep uploads fast
+const MAX_IMAGE_MB = 4;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const AddProductForm = () => {
@@ -53,7 +53,7 @@ const AddProductForm = () => {
 
   const setField = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: undefined })); // clear field error on edit
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const handleChange = (e) => {
@@ -83,7 +83,6 @@ const AddProductForm = () => {
     setImagePreview(url);
   };
 
-  // simple client validation
   const validate = () => {
     const next = {};
     const price = Number(formData.price);
@@ -113,7 +112,6 @@ const AddProductForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
-      // move focus to first error
       const firstKey = Object.keys(errors)[0];
       if (firstKey) document.getElementById(firstKey)?.focus();
       return;
@@ -123,14 +121,12 @@ const AddProductForm = () => {
       setSubmitting(true);
       setUploading(true);
 
-      // Step 1: upload image
       const fd = new FormData();
       fd.append('image', imageFile);
       const { data: uploadData } = await API.post('/api/v1/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // Step 2: create product
       const payload = {
         ...formData,
         price: Number(formData.price),
@@ -160,7 +156,6 @@ const AddProductForm = () => {
       </h1>
 
       <form onSubmit={handleSubmit} noValidate aria-describedby="form-errors" >
-        {/* Name */}
         <div className="form-group">
           <label htmlFor={nameId}>Product Name</label>
           <input
@@ -179,7 +174,6 @@ const AddProductForm = () => {
           {errors.name && <div id={`${nameId}-err`} className="field-error" role="alert">{errors.name}</div>}
         </div>
 
-        {/* Price & MRP */}
         <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           <div className="form-group">
             <label htmlFor={priceId}>Selling Price</label>
@@ -220,7 +214,6 @@ const AddProductForm = () => {
           </div>
         </div>
 
-        {/* Description */}
         <div className="form-group">
           <label htmlFor={descId}>Description</label>
           <textarea
@@ -238,7 +231,6 @@ const AddProductForm = () => {
           {errors.description && <div id={`${descId}-err`} className="field-error" role="alert">{errors.description}</div>}
         </div>
 
-        {/* Stock & Category */}
         <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           <div className="form-group">
             <label htmlFor={stockId}>Stock</label>
@@ -279,7 +271,6 @@ const AddProductForm = () => {
           </div>
         </div>
 
-        {/* Image */}
         <div className="form-group">
           <label htmlFor={imgId}>Product Image</label>
           <input
@@ -309,7 +300,6 @@ const AddProductForm = () => {
           )}
         </div>
 
-        {/* Trending */}
         <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
           <input
             id="trending"
