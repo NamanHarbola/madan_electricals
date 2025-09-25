@@ -11,10 +11,10 @@ const reviewSchema = new mongoose.Schema({
 });
 
 const productSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
     name: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     mrp: { type: Number, required: true, min: 0 },
-    // FIX: Removed the hardcoded 'enum' to allow any category name
     category: { type: String, required: true },
     images: [{ type: String, required: true }],
     description: { type: String, required: true },
