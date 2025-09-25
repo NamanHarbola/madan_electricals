@@ -49,13 +49,6 @@ const createProduct = async (req, res) => {
     try {
         const { name, price, mrp, category, images, description, stock, trending } = req.body;
         
-        // Generate a simple, unique SKU
-        const generateSku = (productName) => {
-            const namePart = productName.slice(0, 3).toUpperCase();
-            const randomPart = Math.random().toString(36).substr(2, 5).toUpperCase();
-            return `ME-${namePart}-${randomPart}`;
-        };
-
         const product = new Product({
             name,
             price,
@@ -65,7 +58,6 @@ const createProduct = async (req, res) => {
             description,
             stock,
             trending,
-            sku: generateSku(name), // Add the generated SKU
             rating: 0,
             numReviews: 0,
             reviews: [],
@@ -75,8 +67,7 @@ const createProduct = async (req, res) => {
         res.status(201).json(createdProduct);
     } catch (error) {
         console.error("Error creating product:", error);
-        // Provide a more specific error message if available
-        res.status(500).json({ message: "Server error while creating product", error: error.message });
+        res.status(500).json({ message: "Server error while creating product" });
     }
 };
 
