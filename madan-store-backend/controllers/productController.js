@@ -13,7 +13,6 @@ const getProducts = async (req, res) => {
             filter.name = { $regex: keyword, $options: 'i' };
         }
         if (category) {
-            // Create a case-insensitive regex from the category name, allowing for URL-friendly dashes
             const categoryRegex = new RegExp(`^${category.replace(/-/g, ' ')}$`, 'i');
             filter.category = { $regex: categoryRegex };
         }
@@ -50,8 +49,14 @@ const createProduct = async (req, res) => {
     try {
         const { name, price, mrp, category, images, description, stock, trending } = req.body;
         
+        // Generate a simple, unique SKU
+        const generateSku = (productName) => {
+            const namePart = productName.slice(0, 3).toUpperCase();
+            const randomPart = Math.random().toString(36).substr(2, 5).toUpperCase();
+            return `ME-${namePart}-${randomPart}`;
+        };
+
         const product = new Product({
-            user: req.user._id, // Add this line
             name,
             price,
             mrp,
@@ -60,6 +65,7 @@ const createProduct = async (req, res) => {
             description,
             stock,
             trending,
+            sku: generateSku(name), // Add the generated SKU
             rating: 0,
             numReviews: 0,
             reviews: [],
@@ -69,7 +75,8 @@ const createProduct = async (req, res) => {
         res.status(201).json(createdProduct);
     } catch (error) {
         console.error("Error creating product:", error);
-        res.status(500).json({ message: "Server error while creating product" });
+        // Provide a more specific error message if available
+        res.status(500).json({ message: "Server error while creating product", error: error.message });
     }
 };
 
