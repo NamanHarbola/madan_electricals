@@ -23,24 +23,17 @@ const app = express();
 // --- Middleware ---
 app.use(helmet());
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://madan-electricalsfrontend.vercel.app',
-  'https://www.madanelectricals.com' // <-- Add this line
-];
+// ** THE FIX IS HERE **
+// This more permissive CORS configuration will solve the issue.
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://madan-electricalsfrontend.vercel.app',
+    'https://www.madanelectricals.com'
+  ],
+  credentials: true
+}));
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use(session({
