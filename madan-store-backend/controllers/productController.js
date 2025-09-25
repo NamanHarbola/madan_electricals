@@ -50,7 +50,7 @@ const createProduct = async (req, res) => {
         const { name, price, mrp, category, images, description, stock, trending } = req.body;
         
         const product = new Product({
-            user: req.user._id, // This line is the fix
+            user: req.user._id,
             name,
             price,
             mrp,
@@ -62,6 +62,7 @@ const createProduct = async (req, res) => {
             rating: 0,
             numReviews: 0,
             reviews: [],
+            sku: `ME-${category.substring(0, 4).toUpperCase()}-${Date.now()}`
         });
 
         const createdProduct = await product.save();
