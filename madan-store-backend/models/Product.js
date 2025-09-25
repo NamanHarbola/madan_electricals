@@ -16,13 +16,13 @@ const productSchema = new mongoose.Schema({
     price: { type: Number, required: true, min: 0 },
     mrp: { type: Number, required: true, min: 0 },
     category: { type: String, required: true },
-    images: { type: [String], required: true },
+    images: [String],
     description: { type: String, required: true },
     stock: { type: Number, required: true, default: 0, min: 0 },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     numReviews: { type: Number, required: true, default: 0 },
     reviews: [reviewSchema],
-    sku: { type: String, unique: true },
+    sku: { type: String },
     tags: [String],
     trending: { type: Boolean, default: false }
 }, {
