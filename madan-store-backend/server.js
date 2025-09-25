@@ -10,21 +10,14 @@ const MongoStore = require('connect-mongo');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
-// Load environment variables from .env file
 dotenv.config();
-// Connect to MongoDB
 connectDB();
 
-// Passport config (ensure this path is correct)
 require('./config/passport')(passport);
 
 const app = express();
 
-// --- Middleware ---
 app.use(helmet());
-
-// ** THE FIX IS HERE **
-// This more permissive CORS configuration will solve the issue.
 app.use(cors({
   origin: [
     'http://localhost:5173',
@@ -33,7 +26,6 @@ app.use(cors({
   ],
   credentials: true
 }));
-
 app.use(express.json());
 
 app.use(session({
@@ -43,14 +35,14 @@ app.use(session({
   store: MongoStore.create({
     mongoUrl: process.env.MONGO_URI,
     collectionName: 'sessions',
-    ttl: 14 * 24 * 60 * 60 // = 14 days
+    ttl: 14 * 24 * 60 * 60
   })
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// --- NEW: Add a root route for the keep-alive service ---
+// ** ADD THIS ROOT ROUTE FOR THE KEEP-ALIVE SERVICE **
 app.get('/', (req, res) => {
   res.status(200).json({ message: "Server is awake and running." });
 });
@@ -69,14 +61,11 @@ v1Routes.use('/profile', require('./routes/profileRoutes'));
 v1Routes.use('/admin', require('./routes/adminRoutes'));
 v1Routes.use('/about', require('./routes/aboutRoutes'));
 
-// Mount all v1 routes under the /api/v1 path
 app.use('/api/v1', v1Routes);
 
-// --- Error Handling Middleware ---
 app.use(notFound);
 app.use(errorHandler);
 
-// --- Server Initialization ---
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Backend server is running on port ${PORT}`);
