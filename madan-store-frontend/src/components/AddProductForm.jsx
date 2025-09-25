@@ -22,8 +22,8 @@ const AddProductForm = () => {
     trending: false,
   });
 
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -62,25 +62,27 @@ const AddProductForm = () => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      setImageFile(null);
-      setImagePreview('');
+    const files = Array.from(e.target.files);
+    if (!files.length) {
+      setImageFiles([]);
+      setImagePreviews([]);
       return;
     }
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error('Please choose a JPG, PNG, or WebP image.');
-      e.target.value = '';
-      return;
-    }
-    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
-      toast.error(`Image must be ≤ ${MAX_IMAGE_MB}MB.`);
-      e.target.value = '';
-      return;
-    }
-    setImageFile(file);
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
+    const validFiles = files.filter(file => {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        toast.error('Please choose a JPG, PNG, or WebP image.');
+        return false;
+      }
+      if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+        toast.error(`Image must be ≤ ${MAX_IMAGE_MB}MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    setImageFiles(validFiles);
+    const urls = validFiles.map(file => URL.createObjectURL(file));
+    setImagePreviews(urls);
   };
 
   // simple client validation
@@ -104,7 +106,7 @@ const AddProductForm = () => {
     if (formData.stock === '') next.stock = 'Stock is required.';
     else if (!Number.isFinite(stock) || stock < 0) next.stock = 'Stock cannot be negative.';
 
-    if (!imageFile) next.image = 'Please select an image.';
+    if (imageFiles.length === 0) next.image = 'Please select at least one image.';
 
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -123,20 +125,25 @@ const AddProductForm = () => {
       setSubmitting(true);
       setUploading(true);
 
-      // Step 1: upload image
-      const fd = new FormData();
-      fd.append('image', imageFile);
-      const { data: uploadData } = await API.post('/api/v1/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // Step 1: upload images
+      const imageUrls = await Promise.all(
+        imageFiles.map(async (file) => {
+          const fd = new FormData();
+          fd.append('image', file);
+          const { data: uploadData } = await API.post('/api/v1/upload', fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          return uploadData.imageUrl;
+        })
+      );
 
-      // Step 2: create product with the uploaded image URL
+      // Step 2: create product with the uploaded image URLs
       const payload = {
         ...formData,
         price: Number(formData.price),
         mrp: Number(formData.mrp),
         stock: Number(formData.stock),
-        images: [uploadData.imageUrl], // Use the URL from the upload response
+        images: imageUrls, // Use the URLs from the upload response
       };
 
       await API.post('/api/v1/products', payload);
@@ -276,7 +283,7 @@ const AddProductForm = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor={imgId}>Product Image</label>
+          <label htmlFor={imgId}>Product Images</label>
           <input
             id={imgId}
             type="file"
@@ -287,19 +294,23 @@ const AddProductForm = () => {
             aria-describedby={errors.image ? `${imgId}-err` : `${imgId}-hint`}
             disabled={disabled}
             required
+            multiple
           />
           {errors.image ? (
             <div id={`${imgId}-err`} className="field-error" role="alert">{errors.image}</div>
           ) : (
             <small id={`${imgId}-hint`} className="hint">JPG/PNG/WebP, up to {MAX_IMAGE_MB}MB.</small>
           )}
-          {imagePreview && (
-            <div style={{ marginTop: 12 }}>
-              <img
-                src={imagePreview}
-                alt="Selected product preview"
-                style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--color-border)' }}
-              />
+          {imagePreviews.length > 0 && (
+            <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {imagePreviews.map((preview, index) => (
+                <img
+                  key={index}
+                  src={preview}
+                  alt={`Selected product preview ${index + 1}`}
+                  style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--color-border)' }}
+                />
+              ))}
             </div>
           )}
         </div>
