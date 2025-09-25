@@ -1,4 +1,4 @@
-// controllers/productController.js
+// madan-store-backend/controllers/productController.js
 const Product = require('../models/Product');
 
 // @desc    Fetch all products, with optional filtering by keyword/category
@@ -13,7 +13,6 @@ const getProducts = async (req, res) => {
             filter.name = { $regex: keyword, $options: 'i' };
         }
         if (category) {
-            // Create a case-insensitive regex from the category name, allowing for URL-friendly dashes
             const categoryRegex = new RegExp(`^${category.replace(/-/g, ' ')}$`, 'i');
             filter.category = { $regex: categoryRegex };
         }
@@ -51,7 +50,6 @@ const createProduct = async (req, res) => {
         const { name, price, mrp, category, images, description, stock, trending } = req.body;
         
         const product = new Product({
-            user: req.user._id, // Add this line
             name,
             price,
             mrp,
@@ -69,6 +67,9 @@ const createProduct = async (req, res) => {
         res.status(201).json(createdProduct);
     } catch (error) {
         console.error("Error creating product:", error);
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: `Validation Error: ${error.message}` });
+        }
         res.status(500).json({ message: "Server error while creating product" });
     }
 };
