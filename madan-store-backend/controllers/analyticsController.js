@@ -26,7 +26,7 @@ const getLiveUsers = async (req, res) => {
     }
 };
 
-// --- NEW: Function to get page views for different date ranges ---
+// --- CORRECTED: Function to get page views for different date ranges ---
 const getViewStats = async (req, res) => {
     const propertyId = process.env.GA_PROPERTY_ID;
     if (!propertyId) {
@@ -34,24 +34,27 @@ const getViewStats = async (req, res) => {
     }
 
     try {
+        // Define the date ranges for the report
+        const dateRanges = [
+            { startDate: 'today', endDate: 'today', name: 'today' },
+            { startDate: 'yesterday', endDate: 'yesterday', name: 'yesterday' },
+            { startDate: '7daysAgo', endDate: 'today', name: '7days' },
+            { startDate: '2020-01-01', endDate: 'today', name: 'total' },
+        ];
+
         const [response] = await analyticsDataClient.runReport({
             property: `properties/${propertyId}`,
-            dateRanges: [
-                { startDate: 'today', endDate: 'today', name: 'today' },
-                { startDate: 'yesterday', endDate: 'yesterday', name: 'yesterday' },
-                { startDate: '7daysAgo', endDate: 'today', name: '7days' },
-                { startDate: '2020-01-01', endDate: 'today', name: 'total' },
-            ],
-            metrics: [
-                { name: 'screenPageViews' }
-            ],
+            dateRanges: dateRanges,
+            metrics: [{ name: 'screenPageViews' }],
         });
 
-        const viewStats = response.dateRanges.reduce((acc, dateRange) => {
-            const row = response.rows.find(r => r.dimensionValues[0].value === dateRange.name);
-            acc[dateRange.name] = row ? row.metricValues[0].value : '0';
-            return acc;
-        }, {});
+        // Correctly map the results to the date ranges by their index
+        const viewStats = {};
+        dateRanges.forEach((range, index) => {
+            // Check if a corresponding row exists for this date range index
+            const row = response.rows[index];
+            viewStats[range.name] = row ? row.metricValues[0].value : '0';
+        });
 
         res.json(viewStats);
 
