@@ -44,22 +44,24 @@ const getViewStats = async (req, res) => {
         const [response] = await analyticsDataClient.runReport({
             property: `properties/${propertyId}`,
             dateRanges: dateRanges,
+            dimensions: [{ name: 'dateRange' }], // Add this dimension
             metrics: [{ name: 'screenPageViews' }],
         });
 
-        const viewStats = {};
-        
-        // The API returns rows that correspond to dateRanges by index.
-        // We must handle cases where there might be no rows.
+        const viewStats = {
+            today: '0',
+            yesterday: '0',
+            '7days': '0',
+            total: '0'
+        };
+
         if (response && Array.isArray(response.rows)) {
-            dateRanges.forEach((range, index) => {
-                const row = response.rows[index];
-                viewStats[range.name] = row && row.metricValues[0] ? row.metricValues[0].value : '0';
-            });
-        } else {
-            // If no rows are returned, default all stats to '0'
-            dateRanges.forEach(range => {
-                viewStats[range.name] = '0';
+            response.rows.forEach(row => {
+                // The dimension value will be 'date_range_0', 'date_range_1', etc.
+                const dateRangeIndex = parseInt(row.dimensionValues[0].value.split('_')[2]);
+                const rangeName = dateRanges[dateRangeIndex].name;
+                const viewCount = row.metricValues[0].value;
+                viewStats[rangeName] = viewCount;
             });
         }
 
