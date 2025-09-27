@@ -20,9 +20,66 @@ const StatCard = ({ title, value, icon, color }) => (
   </div>
 );
 
+// --- NEW: Views card with filters ---
+const ViewsCard = () => {
+  const [liveUsers, setLiveUsers] = useState('...');
+  const [viewStats, setViewStats] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('live');
+
+  useEffect(() => {
+    const fetchLiveUsers = async () => {
+      try {
+        const { data } = await API.get('/api/v1/analytics/live-users');
+        setLiveUsers(data.liveUsers);
+      } catch (error) {
+        setLiveUsers('N/A');
+      }
+    };
+    
+    const fetchViewStats = async () => {
+        try {
+            const {data} = await API.get('/api/v1/analytics/view-stats');
+            setViewStats(data);
+        } catch (error) {
+            console.error("Could not fetch view stats", error);
+        }
+    }
+
+    fetchLiveUsers();
+    fetchViewStats();
+    const interval = setInterval(fetchLiveUsers, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const displayValue = () => {
+    if (activeFilter === 'live') return liveUsers;
+    if (viewStats) return viewStats[activeFilter] || '0';
+    return '...';
+  };
+
+  return (
+    <div className="stat-card" style={{ borderLeft: '5px solid #e67e22', flexDirection: 'column', alignItems: 'stretch' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div className="stat-icon" style={{ color: '#e67e22' }}><FaEye /></div>
+            <div className="stat-info">
+                <h4>{activeFilter === 'live' ? 'Live Viewers' : 'Total Views'}</h4>
+                <p>{displayValue()}</p>
+            </div>
+        </div>
+        <div style={{ display: 'flex', gap: '6px', marginTop: '12px', flexWrap: 'wrap' }}>
+            <button onClick={() => setActiveFilter('live')} className={`btn-filter ${activeFilter === 'live' ? 'active' : ''}`}>Live</button>
+            <button onClick={() => setActiveFilter('today')} className={`btn-filter ${activeFilter === 'today' ? 'active' : ''}`}>Today</button>
+            <button onClick={() => setActiveFilter('yesterday')} className={`btn-filter ${activeFilter === 'yesterday' ? 'active' : ''}`}>Yesterday</button>
+            <button onClick={() => setActiveFilter('7days')} className={`btn-filter ${activeFilter === '7days' ? 'active' : ''}`}>7 Days</button>
+            <button onClick={() => setActiveFilter('total')} className={`btn-filter ${activeFilter === 'total' ? 'active' : ''}`}>Total</button>
+        </div>
+    </div>
+  );
+};
+
+
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState(null);
-  const [liveUsers, setLiveUsers] = useState('...');
   const [loading, setLoading] = useState(true);
   const { userInfo } = useAuth();
 
@@ -37,72 +94,28 @@ const AdminDashboardPage = () => {
         setLoading(false);
       }
     };
-
-    const fetchLiveUsers = async () => {
-      try {
-        const { data } = await API.get('/api/v1/analytics/live-users');
-        setLiveUsers(data.liveUsers);
-      } catch (error) {
-        console.error('Could not fetch live users', error);
-        setLiveUsers('N/A');
-      }
-    };
-
+    
     if (userInfo) {
       fetchStats();
-      fetchLiveUsers();
-      const interval = setInterval(fetchLiveUsers, 30000);
-      return () => clearInterval(interval);
     }
   }, [userInfo]);
 
-  // Safely access chart data, providing empty defaults.
   const monthlySalesData = stats?.monthlySales || [];
   const topProductsData = stats?.topProducts || [];
-
-  const months = monthlySalesData.map(
-    d => new Date(d._id.year, d._id.month - 1).toLocaleString('default', { month: 'short' })
-  );
+  const months = monthlySalesData.map(d => new Date(d._id.year, d._id.month - 1).toLocaleString('default', { month: 'short' }));
   const sales = monthlySalesData.map(d => d.totalSales);
-
   const lineChartData = {
       labels: months,
-      datasets: [
-          {
-              label: 'Sales',
-              data: sales,
-              borderColor: '#3498db',
-              backgroundColor: 'rgba(52, 152, 219, 0.1)',
-              fill: true,
-              tension: 0.4,
-          },
-      ],
+      datasets: [{ label: 'Sales', data: sales, borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.1)', fill: true, tension: 0.4 }],
   };
-
-  const lineOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-  };
-
+  const lineOptions = { responsive: true, maintainAspectRatio: false };
   const topLabels = topProductsData.map(p => p._id);
   const topValues = topProductsData.map(p => p.totalQuantity);
-
   const doughnutChartData = {
       labels: topLabels,
-      datasets: [
-          {
-              label: 'Quantity Sold',
-              data: topValues,
-              backgroundColor: ['#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#e74c3c'],
-          },
-      ],
+      datasets: [{ label: 'Quantity Sold', data: topValues, backgroundColor: ['#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#e74c3c'] }],
   };
-  
-    const doughnutOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-  };
-
+  const doughnutOptions = { responsive: true, maintainAspectRatio: false };
 
   if (loading) return <LoadingSpinner />;
 
@@ -118,10 +131,9 @@ const AdminDashboardPage = () => {
   return (
     <div className="admin-page-container">
       <h1 className="page-title" style={{ paddingTop: 0 }}>Dashboard</h1>
-
         <>
           <div className="stats-grid">
-            <StatCard title="Live Viewers" value={liveUsers} icon={<FaEye />} color="#e67e22" />
+            <ViewsCard />
             <StatCard title="Total Sales" value={formatCurrency(stats.totalSales)} icon={<FaDollarSign />} color="#27ae60" />
             <StatCard title="Total Orders" value={stats.orderCount} icon={<FaShoppingCart />} color="#2980b9" />
             <StatCard title="Total Products" value={stats.productCount} icon={<FaBoxOpen />} color="#8e44ad" />
