@@ -26,7 +26,7 @@ const getLiveUsers = async (req, res) => {
     }
 };
 
-// --- CORRECTED: Function to get page views for different date ranges ---
+// --- FINAL CORRECTED VERSION ---
 const getViewStats = async (req, res) => {
     const propertyId = process.env.GA_PROPERTY_ID;
     if (!propertyId) {
@@ -34,12 +34,11 @@ const getViewStats = async (req, res) => {
     }
 
     try {
-        // Define the date ranges for the report
         const dateRanges = [
-            { startDate: 'today', endDate: 'today', name: 'today' },
-            { startDate: 'yesterday', endDate: 'yesterday', name: 'yesterday' },
-            { startDate: '7daysAgo', endDate: 'today', name: '7days' },
-            { startDate: '2020-01-01', endDate: 'today', name: 'total' },
+            { name: 'today', startDate: 'today', endDate: 'today' },
+            { name: 'yesterday', startDate: 'yesterday', endDate: 'yesterday' },
+            { name: '7days', startDate: '7daysAgo', endDate: 'today' },
+            { name: 'total', startDate: '2020-01-01', endDate: 'today' },
         ];
 
         const [response] = await analyticsDataClient.runReport({
@@ -48,13 +47,21 @@ const getViewStats = async (req, res) => {
             metrics: [{ name: 'screenPageViews' }],
         });
 
-        // Correctly map the results to the date ranges by their index
         const viewStats = {};
-        dateRanges.forEach((range, index) => {
-            // Check if a corresponding row exists for this date range index
-            const row = response.rows[index];
-            viewStats[range.name] = row ? row.metricValues[0].value : '0';
-        });
+        
+        // The API returns rows that correspond to dateRanges by index.
+        // We must handle cases where there might be no rows.
+        if (response && Array.isArray(response.rows)) {
+            dateRanges.forEach((range, index) => {
+                const row = response.rows[index];
+                viewStats[range.name] = row && row.metricValues[0] ? row.metricValues[0].value : '0';
+            });
+        } else {
+            // If no rows are returned, default all stats to '0'
+            dateRanges.forEach(range => {
+                viewStats[range.name] = '0';
+            });
+        }
 
         res.json(viewStats);
 
