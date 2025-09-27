@@ -83,6 +83,7 @@ v1Routes.use('/payment', require('./routes/paymentRoutes'));
 v1Routes.use('/profile', require('./routes/profileRoutes'));
 v1Routes.use('/admin', require('./routes/adminRoutes'));
 v1Routes.use('/about', require('./routes/aboutRoutes'));
+v1Routes.use('/analytics', require('./routes/analyticsRoutes')); 
 
 app.use('/api/v1', v1Routes);
 
