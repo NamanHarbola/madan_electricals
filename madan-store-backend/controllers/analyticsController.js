@@ -1,8 +1,12 @@
 // madan-store-backend/controllers/analyticsController.js
 const { BetaAnalyticsDataClient } = require('@google-analytics/data');
+const path = require('path'); // Import the path module
+
+// --- FIX: Construct an absolute path to the credentials file ---
+const credentialsPath = path.join(__dirname, '..', 'config', 'google-credentials.json');
 
 const analyticsDataClient = new BetaAnalyticsDataClient({
-    keyFilename: 'config/google-credentials.json',
+    keyFilename: credentialsPath, // Use the absolute path
 });
 
 const getLiveUsers = async (req, res) => {
