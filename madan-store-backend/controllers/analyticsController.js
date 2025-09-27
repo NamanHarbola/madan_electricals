@@ -2,11 +2,11 @@
 const { BetaAnalyticsDataClient } = require('@google-analytics/data');
 const path = require('path'); // Import the path module
 
-// --- FIX: Construct an absolute path to the credentials file ---
-const credentialsPath = path.join(__dirname, '..', 'config', 'google-credentials.json');
+// --- FIX: Look for the file in the project's root directory ---
+const credentialsPath = path.join(__dirname, '..', 'google-credentials.json');
 
 const analyticsDataClient = new BetaAnalyticsDataClient({
-    keyFilename: credentialsPath, // Use the absolute path
+    keyFilename: credentialsPath, // Use the updated path
 });
 
 const getLiveUsers = async (req, res) => {
