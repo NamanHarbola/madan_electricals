@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
 import formatCurrency from '../utils/formatCurrency.js';
-import { FaUsers, FaBoxOpen, FaShoppingCart, FaDollarSign, FaEye } from 'react-icons/fa'; // Import FaEye
+import { FaUsers, FaBoxOpen, FaShoppingCart, FaDollarSign, FaEye } from 'react-icons/fa';
 
 import 'chart.js/auto';
 import { Line, Doughnut } from 'react-chartjs-2';
@@ -22,7 +22,7 @@ const StatCard = ({ title, value, icon, color }) => (
 
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState(null);
-  const [liveUsers, setLiveUsers] = useState('...'); // State for live users
+  const [liveUsers, setLiveUsers] = useState('...');
   const [loading, setLoading] = useState(true);
   const { userInfo } = useAuth();
 
@@ -37,44 +37,88 @@ const AdminDashboardPage = () => {
         setLoading(false);
       }
     };
-    
+
     const fetchLiveUsers = async () => {
       try {
         const { data } = await API.get('/api/v1/analytics/live-users');
         setLiveUsers(data.liveUsers);
       } catch (error) {
         console.error('Could not fetch live users', error);
-        setLiveUsers('N/A'); // Set to N/A on error
+        setLiveUsers('N/A');
       }
     };
 
     if (userInfo) {
       fetchStats();
-      fetchLiveUsers(); // Fetch on initial load
-      const interval = setInterval(fetchLiveUsers, 30000); // Refresh every 30 seconds
-      return () => clearInterval(interval); // Cleanup interval on component unmount
+      fetchLiveUsers();
+      const interval = setInterval(fetchLiveUsers, 30000);
+      return () => clearInterval(interval);
     }
   }, [userInfo]);
 
-  const months = (stats?.monthlySales || []).map(
+  // Safely access chart data, providing empty defaults.
+  const monthlySalesData = stats?.monthlySales || [];
+  const topProductsData = stats?.topProducts || [];
+
+  const months = monthlySalesData.map(
     d => new Date(d._id.year, d._id.month - 1).toLocaleString('default', { month: 'short' })
   );
-  const sales = (stats?.monthlySales || []).map(d => d.totalSales);
+  const sales = monthlySalesData.map(d => d.totalSales);
 
-  const lineChartData = { /* ... (no changes here) ... */ };
-  const lineOptions = { /* ... (no changes here) ... */ };
-  const topLabels = (stats?.topProducts || []).map(p => p._id);
-  const topValues = (stats?.topProducts || []).map(p => p.totalQuantity);
-  const doughnutChartData = { /* ... (no changes here) ... */ };
-  const doughnutOptions = { /* ... (no changes here) ... */ };
+  const lineChartData = {
+      labels: months,
+      datasets: [
+          {
+              label: 'Sales',
+              data: sales,
+              borderColor: '#3498db',
+              backgroundColor: 'rgba(52, 152, 219, 0.1)',
+              fill: true,
+              tension: 0.4,
+          },
+      ],
+  };
+
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+  };
+
+  const topLabels = topProductsData.map(p => p._id);
+  const topValues = topProductsData.map(p => p.totalQuantity);
+
+  const doughnutChartData = {
+      labels: topLabels,
+      datasets: [
+          {
+              label: 'Quantity Sold',
+              data: topValues,
+              backgroundColor: ['#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#e74c3c'],
+          },
+      ],
+  };
+  
+    const doughnutOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+  };
+
 
   if (loading) return <LoadingSpinner />;
+
+  if (!stats) {
+    return (
+      <div className="admin-page-container">
+        <h1 className="page-title" style={{ paddingTop: 0 }}>Dashboard</h1>
+        <p>Could not load dashboard statistics. Please check the backend connection and try again.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page-container">
       <h1 className="page-title" style={{ paddingTop: 0 }}>Dashboard</h1>
 
-      {stats && (
         <>
           <div className="stats-grid">
             <StatCard title="Live Viewers" value={liveUsers} icon={<FaEye />} color="#e67e22" />
@@ -95,7 +139,6 @@ const AdminDashboardPage = () => {
             </div>
           </div>
         </>
-      )}
     </div>
   );
 };
