@@ -40,7 +40,7 @@ const Navbar = ({ scrolled }) => {
     <header className={`header ${scrolled ? 'scrolled' : ''}`}>
       {/* Promo banner */}
       <div className="discount-banner" aria-live="polite">
-        <p>Special discount on all products! FESTIVAL DISCOUNT</p>
+        <p>-WEBSITE UNDER-DEVELOPMENT NAMAN HARBOLA-      Special discount on all products! FESTIVAL DISCOUNT</p>
       </div>
 
       <div className="nav-container" role="navigation" aria-label="Primary">
