@@ -43,13 +43,21 @@ const AdminProductsPage = () => {
     fetchProducts();
   }, []);
 
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) {
-      return products;
-    }
-    return products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const groupedAndFilteredProducts = useMemo(() => {
+    const filtered = searchTerm
+      ? products.filter(product =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : products;
+
+    return filtered.reduce((acc, product) => {
+      const category = product.category || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(product);
+      return acc;
+    }, {});
   }, [products, searchTerm]);
 
   const deleteHandler = async (id) => {
@@ -60,6 +68,17 @@ const AdminProductsPage = () => {
       toast.success('Product deleted successfully');
     } catch (error) {
       toast.error(error?.response?.data?.message || 'Error deleting product');
+    }
+  };
+
+  const duplicateHandler = async (id) => {
+    if (!window.confirm('Are you sure you want to duplicate this product?')) return;
+    try {
+      const { data: newProduct } = await API.post(`/api/v1/products/${id}/duplicate`);
+      setProducts(prev => [...prev, newProduct]);
+      toast.success('Product duplicated successfully');
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Error duplicating product');
     }
   };
 
@@ -103,60 +122,72 @@ const AdminProductsPage = () => {
               <th scope="col">Name</th>
               <th scope="col">Price</th>
               <th scope="col">Stock</th>
-              <th scope="col">Category</th>
               <th scope="col">Actions</th>
             </tr>
           </thead>
 
-          <tbody>
-            {filteredProducts.map((product) => {
-              const img =
-                (Array.isArray(product.images) && product.images[0]) ||
-                product.image ||
-                IMG_FALLBACK;
-              const price = formatCurrency(product?.price || 0);
-              const stock =
-                product?.stock > 0 ? (
-                  product.stock
-                ) : (
-                  <span style={{ color: 'var(--color-error)' }}>Out of Stock</span>
-                );
-              const category = product?.category || '—';
+          {Object.keys(groupedAndFilteredProducts).sort().map(category => (
+            <tbody key={category}>
+              <tr>
+                <th colSpan="5" style={{ background: '#f0f0f0', textAlign: 'center', fontWeight: 'bold' }}>
+                  {category}
+                </th>
+              </tr>
+              {groupedAndFilteredProducts[category].map((product) => {
+                const img =
+                  (Array.isArray(product.images) && product.images[0]) ||
+                  product.image ||
+                  IMG_FALLBACK;
+                const price = formatCurrency(product?.price || 0);
+                const stock =
+                  product?.stock > 0 ? (
+                    product.stock
+                  ) : (
+                    <span style={{ color: 'var(--color-error)' }}>Out of Stock</span>
+                  );
 
-              return (
-                <tr key={product._id}>
-                  <td data-label="Image">
-                    <img
-                      src={img}
-                      alt={product?.name ? `${product.name} preview` : 'Product image'}
-                      style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </td>
-                  <td data-label="Name" style={{ fontWeight: 500 }}>
-                    {product?.name || '—'}
-                  </td>
-                  <td data-label="Price">{price}</td>
-                  <td data-label="Stock">{stock}</td>
-                  <td data-label="Category">{category}</td>
-                  <td data-label="Actions" style={{ display: 'flex', gap: 8 }}>
-                    <Link to={`/admin/product/${product._id}/edit`} aria-label={`Edit ${product?.name || 'product'}`}>
-                      <button className="btn-icon" title="Edit">✏️</button>
-                    </Link>
-                    <button
-                      onClick={() => deleteHandler(product._id)}
-                      className="btn-icon"
-                      title="Delete"
-                      aria-label={`Delete ${product?.name || 'product'}`}
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
+                return (
+                  <tr key={product._id}>
+                    <td data-label="Image">
+                      <img
+                        src={img}
+                        alt={product?.name ? `${product.name} preview` : 'Product image'}
+                        style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </td>
+                    <td data-label="Name" style={{ fontWeight: 500 }}>
+                      {product?.name || '—'}
+                    </td>
+                    <td data-label="Price">{price}</td>
+                    <td data-label="Stock">{stock}</td>
+                    <td data-label="Actions" style={{ display: 'flex', gap: 8 }}>
+                      <Link to={`/admin/product/${product._id}/edit`} aria-label={`Edit ${product?.name || 'product'}`}>
+                        <button className="btn-icon" title="Edit">✏️</button>
+                      </Link>
+                      <button
+                        onClick={() => duplicateHandler(product._id)}
+                        className="btn-icon"
+                        title="Duplicate"
+                        aria-label={`Duplicate ${product?.name || 'product'}`}
+                      >
+                        📋
+                      </button>
+                      <button
+                        onClick={() => deleteHandler(product._id)}
+                        className="btn-icon"
+                        title="Delete"
+                        aria-label={`Delete ${product?.name || 'product'}`}
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          ))}
         </table>
       </div>
     </div>

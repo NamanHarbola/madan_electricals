@@ -8,6 +8,7 @@ const {
     updateProduct,
     deleteProduct,
     createProductReview, // Import new controller
+    duplicateProduct,
 } = require('../controllers/productController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -21,5 +22,6 @@ router.route('/:id/reviews').post(protect, createProductReview); // Add review r
 // Admin-only routes
 router.route('/').post(protect, admin, createProduct);
 router.route('/:id').put(protect, admin, updateProduct).delete(protect, admin, deleteProduct);
+router.route('/:id/duplicate').post(protect, admin, duplicateProduct);
 
 module.exports = router;

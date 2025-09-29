@@ -159,6 +159,39 @@ const createProductReview = async (req, res) => {
     }
 };
 
+// @desc    Duplicate a product
+// @route   POST /api/v1/products/:id/duplicate
+// @access  Private/Admin
+const duplicateProduct = async (req, res) => {
+    try {
+        const productToDuplicate = await Product.findById(req.params.id);
+
+        if (!productToDuplicate) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        const productData = productToDuplicate.toObject();
+        delete productData._id; // Remove the original _id
+
+        const duplicatedProduct = new Product({
+            ...productData,
+            name: `${productData.name} - Copy`,
+            sku: `ME-${productData.category.substring(0, 4).toUpperCase()}-${Date.now()}`, // Generate a new SKU
+            reviews: [],
+            rating: 0,
+            numReviews: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+
+        const savedProduct = await duplicatedProduct.save();
+        res.status(201).json(savedProduct);
+    } catch (error) {
+        console.error('Error duplicating product:', error);
+        res.status(500).json({ message: 'Server error while duplicating product' });
+    }
+};
+
 module.exports = {
     getProducts,
     getProductById,
@@ -166,4 +199,5 @@ module.exports = {
     updateProduct,
     deleteProduct,
     createProductReview,
+    duplicateProduct,
 };
